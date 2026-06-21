@@ -5,8 +5,8 @@ from services.event_bus import bus
 class GroqService:
     def __init__(self):
         # Using the provided key snippet or falling back to environment variables
-        api_key = os.environ.get("GROQ_API_KEY", "")
-        self.client = Groq(api_key=api_key)
+        GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+        self.client = Groq(api_key=GROQ_API_KEY)
         self.model = "llama-3.3-70b-versatile"
         
     def generate_response(self, conversation_history):
