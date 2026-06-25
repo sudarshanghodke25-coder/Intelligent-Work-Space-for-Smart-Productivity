@@ -40,8 +40,10 @@ class DashboardView(ctk.CTkFrame):
         header.pack(fill="x", padx=4, pady=(8, 0))
         header.pack_propagate(False)
 
+        from authentication.session import current_session
+        username = current_session.username or "User"
         ctk.CTkLabel(
-            header, text="Welcome back, Michael! 👋",
+            header, text=f"Welcome back, {username}! 👋",
             font=Fonts.TITLE, text_color=Colors.TEXT_PRIMARY,
             anchor="w", fg_color="transparent"
         ).pack(side="top", fill="x")
@@ -58,14 +60,16 @@ class DashboardView(ctk.CTkFrame):
         pills_frame.pack(fill="x", padx=4, pady=(8, 12))
         pills_frame.pack_propagate(False)
 
+        app = self.winfo_toplevel()
+
         pills = [
-            ("🤖", "AI Assistant"),
-            ("📋", "Planner"),
-            ("📥", "Import"),
-            ("🎙️", "Voice Input"),
+            ("🤖", "AI Assistant", lambda: app.navigate("AI Assistant") if hasattr(app, "navigate") else None),
+            ("📋", "Planner", lambda: app.navigate("AI Planner") if hasattr(app, "navigate") else None),
+            ("📥", "Import", lambda: app.navigate("Import") if hasattr(app, "navigate") else None),
+            ("🎙️", "Voice Input", lambda: app.navigate("Voice Input") if hasattr(app, "navigate") else None),
         ]
 
-        for icon, label in pills:
+        for icon, label, cmd in pills:
             pill = ctk.CTkButton(
                 pills_frame,
                 text=f"{icon}  {label}",
@@ -77,6 +81,7 @@ class DashboardView(ctk.CTkFrame):
                 corner_radius=Dims.PILL_CORNER,
                 height=Dims.PILL_HEIGHT,
                 width=120,
+                command=cmd
             )
             pill.pack(side="left", padx=(0, 8))
 

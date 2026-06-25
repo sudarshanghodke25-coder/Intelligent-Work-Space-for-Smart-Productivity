@@ -5,6 +5,7 @@ Uses Pillow to generate a cosmic background image at runtime.
 
 import random
 import math
+import threading
 from PIL import Image, ImageDraw, ImageFilter
 import customtkinter as ctk
 
@@ -156,13 +157,23 @@ class NebulaBackground:
             self._render(w, h)
 
     def _render(self, w: int, h: int):
-        """Generate and apply the background image."""
+        """Generate and apply the background image in a separate thread."""
         self._current_size = (w, h)
-        img = generate_nebula_background(w, h, seed=self._seed)
-        ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(w, h))
-        if self._bg_label:
-            self._bg_label.configure(image=ctk_img)
-            self._bg_label._ctk_image = ctk_img  # prevent GC
+        
+        def _generate_and_apply():
+            img = generate_nebula_background(w, h, seed=self._seed)
+            ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(w, h))
+            
+            def _apply():
+                if self._bg_label:
+                    self._bg_label.configure(image=ctk_img)
+                    self._bg_label._ctk_image = ctk_img  # prevent GC
+            
+            # Schedule UI update on main thread
+            if hasattr(self.parent, "after"):
+                self.parent.after(0, _apply)
+        
+        threading.Thread(target=_generate_and_apply, daemon=True).start()
 
     @property
     def label(self):

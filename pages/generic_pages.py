@@ -22,11 +22,3 @@ class BasePageView(ctk.CTkFrame):
 class NotesView(BasePageView):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, "Notes & Docs", "📝", **kwargs)
-
-class CalendarView(BasePageView):
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent, "Calendar", "📅", **kwargs)
-
-class AnalyticsView(BasePageView):
-    def __init__(self, parent, **kwargs):
-        super().__init__(parent, "Analytics", "📈", **kwargs)

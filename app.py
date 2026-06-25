@@ -131,6 +131,9 @@ class AurexApp(ctk.CTk):
 
         self._current_view_name = page_name
 
+        if hasattr(self, '_sidebar') and self._sidebar:
+            self._sidebar.set_active(page_name)
+
         if page_name == "Dashboard":
             self._content_frame = DashboardView(self._content_area)
         else:

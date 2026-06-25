@@ -34,9 +34,10 @@ class FocusTracker:
                 bus.publish("FOCUS_UPDATED") # Tell charts to reload
 
     def _log_focus(self, minutes):
+        from authentication.session import current_session
+        user_id = current_session.user_id or 0
         conn = get_connection()
-        # Mock tag choice for demo
-        conn.execute("INSERT INTO focus_logs (user_id, tag, duration_minutes) VALUES (?, ?, ?)", (1, "Work", minutes))
+        conn.execute("INSERT INTO focus_logs (user_id, tag, duration_minutes) VALUES (?, ?, ?)", (user_id, "Work", minutes))
         conn.commit()
         conn.close()
 
@@ -46,29 +47,30 @@ focus_tracker = FocusTracker()
 def ai_parse_text(raw_text: str):
     """Asynchronous background task to parse raw text and recalculate completion."""
     def _parse():
-        # Simulate AI inference delay
-        time.sleep(2)
-        
-        # AI theoretically extracts tasks. We simulate adding a completed task to the DB.
+        from authentication.session import current_session
+        user_id = current_session.user_id or 0
+
         conn = get_connection()
-        
-        # Insert extracted task
+
+        # Insert extracted task attributed to the real logged-in user
         title = f"Extracted: {raw_text[:15]}..." if len(raw_text) > 15 else f"Extracted: {raw_text}"
-        conn.execute("INSERT INTO tasks (user_id, title, priority, due_date, status) VALUES (?, ?, ?, ?, ?)", 
-                     (1, title, "Medium", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Completed"))
+        conn.execute(
+            "INSERT INTO tasks (user_id, title, priority, due_date, status) VALUES (?, ?, ?, ?, ?)",
+            (user_id, title, "Medium", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "Completed")
+        )
         conn.commit()
-        
-        # Calculate completion %
-        total = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
-        completed = conn.execute("SELECT COUNT(*) FROM tasks WHERE status='Completed'").fetchone()[0]
-        
+
+        # Calculate completion % for this user only
+        total = conn.execute("SELECT COUNT(*) FROM tasks WHERE user_id = ?", (user_id,)).fetchone()[0]
+        completed = conn.execute("SELECT COUNT(*) FROM tasks WHERE user_id = ? AND status='Completed'", (user_id,)).fetchone()[0]
+
         completion_pct = (completed / total) * 100 if total > 0 else 0
         conn.close()
-        
+
         # Emit reactivity events
         bus.publish("COMPLETION_UPDATED", {"percentage": completion_pct})
         bus.publish("TASKS_UPDATED")
-        
+
     threading.Thread(target=_parse, daemon=True).start()
 
 # 3. AI Suggestions Scanner (Background Thread)
@@ -86,15 +88,20 @@ class SuggestionScanner:
         
     def _scan_loop(self):
         while self.is_running:
-            time.sleep(10) # Scan periodically (every 10 seconds for demo responsiveness)
+            time.sleep(30)  # Scan every 30 seconds
             self._evaluate_rules()
             
     def _evaluate_rules(self):
+        from authentication.session import current_session
+        user_id = current_session.user_id or 0
+
         conn = get_connection()
         now = datetime.now()
-        
+
         # Rule B: High priority task due within 24 hours
-        tasks = conn.execute("SELECT * FROM tasks WHERE priority='High' AND status!='Completed'").fetchall()
+        tasks = conn.execute(
+            "SELECT * FROM tasks WHERE user_id = ? AND priority='High' AND status!='Completed'", (user_id,)
+        ).fetchall()
         for t in tasks:
             due = datetime.strptime(t["due_date"], "%Y-%m-%d %H:%M:%S")
             if timedelta(0) < (due - now) < timedelta(hours=24):
@@ -103,13 +110,16 @@ class SuggestionScanner:
                     "message": f"High priority task '{t['title']}' is due within 24h!",
                     "type": "warning"
                 })
-                break # Fire only one to avoid spam
-                
+                break  # Fire only one to avoid spam
+
         # Rule A: Gap block > 90 mins between schedule elements
         today_str = now.strftime("%Y-%m-%d 00:00:00")
         tomorrow_str = (now + timedelta(days=1)).strftime("%Y-%m-%d 00:00:00")
-        schedules = conn.execute("SELECT * FROM schedules WHERE start_time >= ? AND start_time < ? ORDER BY start_time", (today_str, tomorrow_str)).fetchall()
-        
+        schedules = conn.execute(
+            "SELECT * FROM schedules WHERE user_id = ? AND start_time >= ? AND start_time < ? ORDER BY start_time",
+            (user_id, today_str, tomorrow_str)
+        ).fetchall()
+
         for i in range(len(schedules) - 1):
             end_current = datetime.strptime(schedules[i]["end_time"], "%Y-%m-%d %H:%M:%S")
             start_next = datetime.strptime(schedules[i+1]["start_time"], "%Y-%m-%d %H:%M:%S")
@@ -121,7 +131,7 @@ class SuggestionScanner:
                     "type": "suggestion"
                 })
                 break
-                
+
         conn.close()
 
 suggestion_scanner = SuggestionScanner()

@@ -201,8 +201,23 @@ class Sidebar(ctk.CTkFrame):
         avatar.pack(side="left", padx=(0, 10))
         avatar.pack_propagate(False)
 
+        from authentication.session import current_session
+        full_name = current_session.full_name or current_session.username or "User"
+        email = current_session.email or ""
+        # Build initials (up to 2 chars) from full name
+        parts = full_name.split()
+        initials = (parts[0][0] + (parts[-1][0] if len(parts) > 1 else "")).upper()
+
+        # Avatar circle with initials
+        avatar = ctk.CTkFrame(
+            profile_inner, width=38, height=38, corner_radius=19,
+            fg_color=Colors.ACCENT_PRIMARY
+        )
+        avatar.pack(side="left", padx=(0, 10))
+        avatar.pack_propagate(False)
+
         ctk.CTkLabel(
-            avatar, text="MR",
+            avatar, text=initials,
             font=("Segoe UI", 13, "bold"), text_color=Colors.TEXT_PRIMARY,
             fg_color="transparent"
         ).place(relx=0.5, rely=0.5, anchor="center")
@@ -212,13 +227,13 @@ class Sidebar(ctk.CTkFrame):
         info_frame.pack(side="left", fill="x", expand=True)
 
         ctk.CTkLabel(
-            info_frame, text="Michael Robinson",
+            info_frame, text=full_name,
             font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY,
             anchor="w", fg_color="transparent"
         ).pack(fill="x")
 
         ctk.CTkLabel(
-            info_frame, text="michael@aurex.io",
+            info_frame, text=email,
             font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED,
             anchor="w", fg_color="transparent"
         ).pack(fill="x")

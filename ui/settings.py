@@ -103,9 +103,9 @@ class SettingsView(ctk.CTkFrame):
         btns_frame = ctk.CTkFrame(acc_card.content, fg_color="transparent")
         btns_frame.pack(fill="x")
         
-        ctk.CTkButton(btns_frame, text="Update Profile", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER).pack(side="left", padx=(0,10))
-        ctk.CTkButton(btns_frame, text="Change Password", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER).pack(side="left", padx=(0,10))
-        ctk.CTkButton(btns_frame, text="Delete Account", fg_color=Colors.ERROR, hover_color="#dc2626").pack(side="left")
+        ctk.CTkButton(btns_frame, text="Update Profile", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER, state="disabled").pack(side="left", padx=(0,10))
+        # ctk.CTkButton(btns_frame, text="Change Password", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER).pack(side="left", padx=(0,10))
+        # ctk.CTkButton(btns_frame, text="Delete Account", fg_color=Colors.ERROR, hover_color="#dc2626").pack(side="left")
 
     def _add_slider(self, parent, label_text, setting_key):
         frame = ctk.CTkFrame(parent, fg_color="transparent")
@@ -127,3 +127,8 @@ class SettingsView(ctk.CTkFrame):
         self.settings["theme"] = self.theme_var.get()
         self.settings["accent_color"] = self.accent_var.get()
         self._save_settings()
+        
+        # Add feedback if it doesn't exist
+        if not hasattr(self, 'restart_lbl'):
+            self.restart_lbl = ctk.CTkLabel(self.scroll, text="A restart is required to fully apply appearance changes.", font=Fonts.SMALL_BOLD, text_color=Colors.WARNING)
+            self.restart_lbl.pack(pady=10)

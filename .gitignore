@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.db
+working/
+data/
+Aurex_Data/

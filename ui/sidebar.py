@@ -8,9 +8,9 @@ MENU_ITEMS = [
     ("🤖", "Aurex AI"),
     ("📋", "AI Planner"),
     ("✅", "Task Manager"),
-    ("📝", "Notes & Docs"),
-    ("📅", "Calendar"),
-    ("📈", "Analytics"),
+    ("📝", "Summarizer"),
+    ("✨", "Image Studio"),
+    ("🔄", "File Converter"),
     ("🕐", "History"),
 ]
 

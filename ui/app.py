@@ -8,15 +8,22 @@ from ui.settings import SettingsView
 from ui.views.assistant_view import AssistantView
 from pages.history import HistoryView
 from ui.views.notes_docs_view import NotesDocsView
-from pages.generic_pages import CalendarView, AnalyticsView
 from ui.views.task_manager_view import TasksView
 from ui.views.planner_view import PlannerView
+from ui.views.image_studio_view import ImageStudioView
+from file_converter.views.converter_view import FileConverterView
+from ui.views.focus_view import FocusView
+from ui.views.goal_tracker_view import GoalTrackerView
 from services.event_bus import bus
 from services.engine import focus_tracker, suggestion_scanner
+from services.event_subscribers import init_subscribers
 
 class AurexApp(ctk.CTk):
     def __init__(self):
         super().__init__()
+        
+        # Initialize event subscribers for decoupled systems
+        init_subscribers()
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("dark-blue")
@@ -36,6 +43,7 @@ class AurexApp(ctk.CTk):
 
         # Initialize event bus marshaling
         bus.set_app(self)
+        bus.subscribe("NAVIGATE_TO", self.navigate)
 
         self._show_login()
 
@@ -58,6 +66,14 @@ class AurexApp(ctk.CTk):
         # Start background tracking and AI rules engines
         focus_tracker.start()
         suggestion_scanner.start()
+        
+        from services.task_status_engine import task_status_engine
+        task_status_engine.start()
+
+        # Preload Embedding Model (Phase 4)
+        from services.embeddings.embedding_service import embedding_service
+        import threading
+        threading.Thread(target=embedding_service.preload, daemon=True).start()
         
         self.navigate("Dashboard")
 
@@ -101,9 +117,13 @@ class AurexApp(ctk.CTk):
             "History": HistoryView,
             "AI Planner": PlannerView,
             "Task Manager": TasksView,
-            "Notes & Docs": NotesDocsView,
-            "Calendar": CalendarView,
-            "Analytics": AnalyticsView
+            "Summarizer": NotesDocsView,
+            "Image Studio": ImageStudioView,
+            "File Converter": FileConverterView,
+            "Focus Mode": FocusView,
+            "Pomodoro Timer": FocusView,
+            "Goal Tracker": GoalTrackerView,
+            "Habit Tracker": GoalTrackerView
         }
         
         # Instantiate and cache if not exists
