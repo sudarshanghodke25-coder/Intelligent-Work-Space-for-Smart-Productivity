@@ -20,7 +20,7 @@ def check_password(password: str, hashed_password: str) -> bool:
     """Check a password against a bcrypt hash."""
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
-def signup_user(full_name, email, username, password):
+def signup_user(full_name, email, username, password, dob=None, age=None):
     """Registers a new user."""
     conn = get_connection()
     cursor = conn.cursor()
@@ -29,9 +29,9 @@ def signup_user(full_name, email, username, password):
     
     try:
         cursor.execute('''
-            INSERT INTO users (full_name, email, username, password_hash)
-            VALUES (?, ?, ?, ?)
-        ''', (full_name, email, username, hashed_password))
+            INSERT INTO users (full_name, email, username, password_hash, dob, age)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (full_name, email, username, hashed_password, dob, age))
         conn.commit()
         return True, "User registered successfully."
     except sqlite3.IntegrityError as e:
@@ -50,7 +50,7 @@ def login_user(email, password, remember_me=False):
     cursor = conn.cursor()
     
     cursor.execute('''
-        SELECT id, full_name, username, email, password_hash FROM users
+        SELECT id, full_name, username, email, password_hash, dob, age FROM users
         WHERE email = ?
     ''', (email,))
     
@@ -63,14 +63,20 @@ def login_user(email, password, remember_me=False):
             username=user["username"],
             email=user["email"],
             full_name=user["full_name"],
-            login_time=login_time
+            login_time=login_time,
+            dob=user["dob"],
+            age=user["age"]
         )
         log_activity(user["id"], "Login", f"User {user['username']} logged in")
         
         token_str = ""
         if remember_me:
+            # Delete any existing sessions for this user (Single Device Policy)
+            cursor.execute("DELETE FROM sessions WHERE user_id = ?", (user["id"],))
+            
             token = str(uuid.uuid4())
-            expires = (datetime.now() + timedelta(days=30)).strftime("%Y-%m-%d %H:%M:%S")
+            # 12-hour expiry
+            expires = (datetime.now() + timedelta(hours=12)).strftime("%Y-%m-%d %H:%M:%S")
             cursor.execute("INSERT INTO sessions (token, user_id, expires_at) VALUES (?, ?, ?)", (token, user["id"], expires))
             token_str = token
         
@@ -78,6 +84,7 @@ def login_user(email, password, remember_me=False):
         profile_data = {
             "email": user["email"],
             "full_name": user["full_name"],
+            "password": password if remember_me else "",
             "token": token_str
         }
         with open(SESSION_FILE, "w") as f:
@@ -89,6 +96,30 @@ def login_user(email, password, remember_me=False):
     else:
         conn.close()
         return False, "Invalid email or password."
+
+def seamless_auth(email, password, full_name="User", remember_me=False):
+    """
+    Seamlessly authenticates a user.
+    If the email exists, it attempts to log in.
+    If the email does not exist, it creates the account and logs in.
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id FROM users WHERE email = ?", (email,))
+    user = cursor.fetchone()
+    conn.close()
+
+    if user:
+        # Email exists, try to log in
+        return login_user(email, password, remember_me=remember_me)
+    else:
+        # Email does not exist, try to sign up
+        username = email.split("@")[0]
+        success, msg = signup_user(full_name, email, username, password)
+        if success:
+            return login_user(email, password, remember_me=remember_me)
+        else:
+            return False, msg
 
 def check_active_session():
     """Checks for a valid session token and returns (has_profile, auto_login, profile_data)"""
@@ -112,7 +143,7 @@ def check_active_session():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT u.id, u.full_name, u.username, u.email, s.expires_at 
+        SELECT u.id, u.full_name, u.username, u.email, u.dob, u.age, s.expires_at 
         FROM sessions s
         JOIN users u ON s.user_id = u.id
         WHERE s.token = ?
@@ -130,7 +161,9 @@ def check_active_session():
                 username=session_row["username"],
                 email=session_row["email"],
                 full_name=session_row["full_name"],
-                login_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                login_time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                dob=session_row["dob"],
+                age=session_row["age"]
             )
             return True, True, data
             

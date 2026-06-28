@@ -28,11 +28,11 @@ class QuickToolCard(HoverCard):
         icon_part = tool.icon[:2] if len(tool.icon) >= 2 else tool.icon
         
         # Icon box
-        icon_box = ctk.CTkFrame(inner, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=6, width=28, height=28)
+        icon_box = ctk.CTkFrame(inner, fg_color=Colors.CARD_FLOATING, corner_radius=6, width=28, height=28)
         icon_box.pack(side="left", padx=(0, 8))
         icon_box.pack_propagate(False)
         icon_lbl = ctk.CTkLabel(
-            icon_box, text=icon_part, font=("Segoe UI", 14), text_color=Colors.ACCENT_GLOW, fg_color="transparent"
+            icon_box, text=icon_part, font=("Segoe UI", 14), text_color=Colors.ACCENT_PRIMARY, fg_color="transparent"
         )
         icon_lbl.place(relx=0.5, rely=0.5, anchor="center")
         self.bind_children(icon_box)
@@ -73,8 +73,8 @@ class QuickToolsPanel(ctk.CTkFrame):
         ).pack(side="left")
         
         ctk.CTkButton(
-            header, text="View All", font=Fonts.CAPTION, text_color=Colors.ACCENT_GLOW,
-            fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, width=50, height=20, corner_radius=4, command=lambda: None
+            header, text="View All", font=Fonts.CAPTION, text_color=Colors.ACCENT_PRIMARY,
+            fg_color="transparent", hover_color=Colors.CARD_HOVER, width=50, height=20, corner_radius=4, command=lambda: None
         ).pack(side="right")
 
         # ── Grid ────────────────────────────────────────────

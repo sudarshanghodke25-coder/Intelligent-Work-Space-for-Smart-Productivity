@@ -232,8 +232,8 @@ class ConverterController:
 
         if not job_id:
             # Prompt user to select a file
-            exts = " ".join(f"*{e}" for e in tool.input_formats if e != "*")
-            file_types = [("Supported files", exts), ("All files", "*.*")]
+            exts = ";".join(f"*{e}" for e in tool.input_formats if e != "*")
+            file_types = [("Supported files", exts)]
             path = filedialog.askopenfilename(filetypes=file_types)
             if not path:
                 return

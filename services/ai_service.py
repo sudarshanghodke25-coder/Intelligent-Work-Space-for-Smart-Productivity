@@ -38,34 +38,22 @@ class AIService:
         intent = intent_data.get("intent", "ai_chat")
         target = intent_data.get("target", "")
 
-        # Auto-title logic for first message
+        # Auto-title from first message without an extra API call
         if msg_count == 1:
-            def _update_title():
-                if intent == "ai_chat":
-                    # Generate conversational title
-                    new_title = self.generate_conversation_title(user_input)
-                else:
-                    # Command-only title
-                    new_title = user_input.strip()
-                    if len(new_title) > 40:
-                        new_title = new_title[:37] + "..."
-                
-                c2 = get_connection()
-                c2.execute("UPDATE chat_sessions SET title = ? WHERE session_id=?", (new_title, session_id))
-                c2.commit()
-                c2.close()
-                bus.publish("HISTORY_UPDATED", {})
-                
-            import threading
-            threading.Thread(target=_update_title, daemon=True).start()
+            new_title = user_input.strip()
+            if len(new_title) > 40:
+                new_title = new_title[:37] + "..."
+            cursor.execute("UPDATE chat_sessions SET title = ? WHERE session_id=?", (new_title, session_id))
+            conn.commit()
+            bus.publish("HISTORY_UPDATED", {})
 
         # Handle the intent
         if intent != "ai_chat":
             response_text = self._execute_intent(intent, target, user_input)
         else:
             # AI Chat Generation
-            cursor.execute("SELECT role, message FROM chat_messages WHERE session_id=? ORDER BY timestamp ASC LIMIT 20", (session_id,))
-            history_rows = cursor.fetchall()
+            cursor.execute("SELECT role, message FROM chat_messages WHERE session_id=? ORDER BY timestamp DESC LIMIT 12", (session_id,))
+            history_rows = list(reversed(cursor.fetchall()))
             
             messages = [{"role": "system", "content": "You are Aurex AI, a futuristic AI workspace assistant. You must provide high-level, extremely concise, and fast responses. When asked to generate content, prioritize high-level summaries and avoid long-winded explanations to ensure the fastest possible output."}]
             for row in history_rows:
@@ -73,7 +61,9 @@ class AIService:
 
             try:
                 completion = aurex_api.chat_completions_create(
-                    messages=messages
+                    messages=messages,
+                    max_tokens=512,
+                    temperature=0.5,
                 )
                 response_text = completion.choices[0].message.content
             except Exception as e:
@@ -221,7 +211,9 @@ Output ONLY valid JSON.
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": f"Build a {plan_type} roadmap for: {goal}"}
                 ],
-                response_format={"type": "json_object"}
+                response_format={"type": "json_object"},
+                max_tokens=2048,
+                temperature=0.6,
             )
             response_text = completion.choices[0].message.content
             parsed_data = json.loads(response_text)

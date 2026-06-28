@@ -74,8 +74,8 @@ class FileConverterView(ctk.CTkFrame):
         
         main_scroll = ctk.CTkScrollableFrame(
             main_pane, fg_color="transparent",
-            scrollbar_button_color=Colors.GLASS_FILL_LIGHT,
-            scrollbar_button_hover_color=Colors.GLASS_FILL_HOVER,
+            scrollbar_button_color=Colors.CARD_FLOATING,
+            scrollbar_button_hover_color=Colors.CARD_HOVER,
         )
         main_scroll.pack(fill="both", expand=True, padx=4)
 
@@ -179,6 +179,7 @@ class FileConverterView(ctk.CTkFrame):
             on_open_file=self._ctrl.open_file,
             on_open_folder=self._ctrl.open_folder,
             on_delete_entry=self._on_delete_history,
+            on_clear_all=self._on_clear_history,
             on_refresh=lambda status, search: self._ctrl.get_history(
                 limit=10,
                 status_filter=status,
@@ -192,6 +193,14 @@ class FileConverterView(ctk.CTkFrame):
 
     def _subscribe_events(self):
         bus.subscribe(ConverterEvents.BATCH_STARTED, lambda _: self._settings_panel.set_converting_state(True))
+        
+        def check_batch_state(_):
+            if self._ctrl.active_count == 0:
+                self._settings_panel.set_converting_state(False)
+
+        bus.subscribe(ConverterEvents.JOB_COMPLETED, check_batch_state)
+        bus.subscribe(ConverterEvents.JOB_FAILED, check_batch_state)
+        bus.subscribe(ConverterEvents.JOB_CANCELLED, check_batch_state)
         bus.subscribe(ConverterEvents.BATCH_COMPLETED, lambda _: self._settings_panel.set_converting_state(False))
         bus.subscribe(ConverterEvents.BATCH_CANCELLED, lambda _: self._settings_panel.set_converting_state(False))
 
@@ -234,3 +243,11 @@ class FileConverterView(ctk.CTkFrame):
             delete_history_entry(entry_id)
         except Exception:
             pass
+
+    def _on_clear_history(self) -> None:
+        try:
+            from file_converter.database.converter_db import clear_history
+            clear_history()
+            bus.publish(ConverterEvents.HISTORY_UPDATED, None)
+        except Exception as e:
+            print(f"Error clearing history: {e}")

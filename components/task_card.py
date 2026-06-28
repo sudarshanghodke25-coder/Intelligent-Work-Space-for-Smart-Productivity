@@ -7,9 +7,9 @@ class TaskCard(ctk.CTkFrame):
                  on_click=None, on_complete=None, 
                  on_edit=None, on_delete=None, on_details=None, **kwargs):
         
-        self.bg_normal = Colors.ACCENT_SUBTLE if is_selected else Colors.GLASS_FILL_LIGHT
-        self.bg_hover = Colors.GLASS_FILL_HOVER if not is_selected else blend_color(Colors.ACCENT_PRIMARY, 0.3)
-        self.border_color = Colors.ACCENT_PRIMARY if is_selected else Colors.GLASS_BORDER
+        self.bg_normal = Colors.ACCENT_SUBTLE if is_selected else Colors.CARD_FLOATING
+        self.bg_hover = Colors.CARD_HOVER if not is_selected else blend_color(Colors.ACCENT_PRIMARY, 0.3)
+        self.border_color = Colors.ACCENT_PRIMARY if is_selected else Colors.BORDER_SUBTLE
         
         super().__init__(parent, fg_color=self.bg_normal, corner_radius=12, border_width=1, border_color=self.border_color, **kwargs)
         
@@ -71,7 +71,7 @@ class TaskCard(ctk.CTkFrame):
         prog_frame.pack_propagate(False)
         
         p_val = task.get("progress", 0)
-        pbar = ctk.CTkProgressBar(prog_frame, fg_color=Colors.ENTRY_BG, progress_color=Colors.ACCENT_PRIMARY, height=6)
+        pbar = ctk.CTkProgressBar(prog_frame, fg_color=Colors.INPUT_BG, progress_color=Colors.ACCENT_PRIMARY, height=6)
         pbar.pack(side="top", fill="x", pady=(8, 2))
         pbar.set(p_val / 100.0)
         ctk.CTkLabel(prog_frame, text=f"{p_val}%", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED).pack(side="top")
@@ -80,7 +80,7 @@ class TaskCard(ctk.CTkFrame):
         actions_frame = ctk.CTkFrame(self.inner, fg_color="transparent")
         actions_frame.pack(side="right")
         
-        btn_kwargs = {"font": Fonts.CAPTION, "width": 24, "height": 24, "fg_color": "transparent", "hover_color": Colors.GLASS_FILL_HOVER}
+        btn_kwargs = {"font": Fonts.CAPTION, "width": 24, "height": 24, "fg_color": "transparent", "hover_color": Colors.CARD_HOVER}
         
         ctk.CTkButton(actions_frame, text="📄", text_color=Colors.TEXT_SECONDARY, command=lambda: on_details(task) if on_details else None, **btn_kwargs).pack(side="left", padx=2)
         ctk.CTkButton(actions_frame, text="✎", text_color=Colors.TEXT_SECONDARY, command=lambda: on_edit(task) if on_edit else None, **btn_kwargs).pack(side="left", padx=2)

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Sora:wght@600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;family=Sora:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel {
+      background: rgba(30, 41, 59, 0.4);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.3);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .action-gradient {
+      background: linear-gradient(135deg, #a078ff 0%, #4cd7f6 100%);
+    }
+    .sidebar-active {
+      background: rgba(76, 215, 246, 0.1);
+      box-shadow: inset 4px 0 0 0 #4cd7f6;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #5516be;
+      border-radius: 10px;
+    }
+    .glow-hover:hover {
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "background": "#0b1326",
+            "on-primary-container": "#340080",
+            "on-primary": "#3c0091",
+            "inverse-on-surface": "#283044",
+            "on-secondary-fixed": "#001f26",
+            "on-primary-fixed-variant": "#5516be",
+            "on-surface-variant": "#cbc3d7",
+            "outline-variant": "#494454",
+            "tertiary-container": "#ff516a",
+            "surface-dim": "#0b1326",
+            "surface-container-low": "#131b2e",
+            "on-primary-fixed": "#23005c",
+            "on-error-container": "#ffdad6",
+            "surface": "#0b1326",
+            "on-surface": "#dae2fd",
+            "surface-container": "#171f33",
+            "secondary-fixed": "#acedff",
+            "on-tertiary": "#67001b",
+            "inverse-surface": "#dae2fd",
+            "primary": "#d0bcff",
+            "surface-container-lowest": "#060e20",
+            "error": "#ffb4ab",
+            "secondary-fixed-dim": "#4cd7f6",
+            "tertiary": "#ffb2b7",
+            "surface-variant": "#2d3449",
+            "primary-fixed": "#e9ddff",
+            "on-error": "#690005",
+            "on-tertiary-fixed": "#40000d",
+            "secondary": "#4cd7f6",
+            "on-secondary": "#003640",
+            "surface-bright": "#31394d",
+            "secondary-container": "#03b5d3",
+            "inverse-primary": "#6d3bd7",
+            "error-container": "#93000a",
+            "surface-tint": "#d0bcff",
+            "surface-container-highest": "#2d3449",
+            "outline": "#958ea0",
+            "surface-container-high": "#222a3d",
+            "tertiary-fixed": "#ffdadb",
+            "primary-fixed-dim": "#d0bcff",
+            "on-secondary-fixed-variant": "#004e5c",
+            "primary-container": "#a078ff",
+            "on-background": "#dae2fd",
+            "on-tertiary-container": "#5b0017",
+            "tertiary-fixed-dim": "#ffb2b7",
+            "on-tertiary-fixed-variant": "#92002a",
+            "on-secondary-container": "#00424e"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "margin-mobile": "16px",
+            "unit": "4px",
+            "sidebar-width": "260px",
+            "gutter": "24px",
+            "margin-desktop": "32px"
+          },
+          "fontFamily": {
+            "label-sm": ["Inter"],
+            "headline-md": ["Sora"],
+            "display-lg": ["Sora"],
+            "headline-lg": ["Sora"],
+            "label-md": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"]
+          },
+          "fontSize": {
+            "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+            "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface font-body-md min-h-screen overflow-hidden">
+<!-- SideNavBar Anchor -->
+<aside class="w-[260px] h-screen fixed left-0 top-0 bg-surface-container-low/50 backdrop-blur-2xl border-r border-white/10 flex flex-col h-full py-6 px-4 z-50">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="w-8 h-8 rounded-lg action-gradient flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h1 class="font-display-lg text-[20px] leading-tight text-primary">AUREX OS</h1>
+<p class="font-label-md text-[10px] text-on-surface-variant opacity-70">Quantum v4.2</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="text-[10px] font-bold text-on-surface-variant/50 px-2 mb-2 tracking-widest uppercase">Main Menu</div>
+<a class="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="font-label-md text-label-md">Workspace</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[20px]">psychology</span>
+<span class="font-label-md text-label-md">AI Models</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 rounded-lg bg-secondary-container/30 text-on-secondary-fixed border-l-4 border-secondary shadow-[0_0_15px_rgba(76,215,246,0.3)]" href="#">
+<span class="material-symbols-outlined text-[20px]">summarize</span>
+<span class="font-label-md text-label-md">Summarizer</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[20px]">account_tree</span>
+<span class="font-label-md text-label-md">Data Streams</span>
+</a>
+<a class="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-on-surface-variant hover:bg-white/5 transition-all duration-300" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+<span class="font-label-md text-label-md">Archives</span>
+</a>
+</nav>
+<div class="mt-auto pt-6 border-t border-white/5 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="font-label-md text-label-md">Sign Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="ml-[260px] h-screen overflow-hidden flex flex-col">
+<!-- Top Bar Component -->
+<header class="h-16 flex items-center justify-between px-gutter border-b border-white/10 bg-surface/50 backdrop-blur-xl sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md text-on-surface">Summarizer</span>
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container-highest/50 rounded-full border border-white/5">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse shadow-[0_0_8px_#4cd7f6]"></div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">Aurex Neural Active</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors">settings</button>
+</div>
+<button class="px-6 py-2 rounded-lg action-gradient text-white font-label-md glow-hover transition-all active:scale-95">Upgrade</button>
+</div>
+</header>
+<!-- Content Workspace -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Left Column: Input & History -->
+<div class="w-1/2 p-gutter overflow-y-auto space-y-gutter border-r border-white/5">
+<!-- Input Section -->
+<div class="space-y-4">
+<!-- Document Analyzer -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+<div class="flex-1">
+<label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-1 tracking-wider">Document Analyzer</label>
+<div class="flex items-center gap-3 bg-black/20 rounded-lg px-4 py-2 border border-white/5">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">description</span>
+<span class="text-on-surface-variant/60 text-sm italic">No file selected...</span>
+</div>
+</div>
+<div class="flex items-end gap-2 pt-5">
+<button class="px-4 py-2 rounded-lg bg-surface-container-highest border border-white/10 text-on-surface text-sm hover:bg-white/10 transition-colors">Upload File</button>
+<button class="px-4 py-2 rounded-lg bg-primary-container text-white text-sm font-semibold hover:opacity-90 transition-opacity">Analyze Document</button>
+</div>
+</div>
+<!-- URL Analyzer -->
+<div class="glass-panel p-4 rounded-xl flex items-center gap-4">
+<div class="flex-1">
+<label class="block text-[11px] font-bold text-on-surface-variant uppercase mb-1 tracking-wider">URL Analyzer</label>
+<div class="flex items-center gap-3 bg-black/20 rounded-lg px-4 py-2 border border-white/5">
+<span class="material-symbols-outlined text-on-surface-variant text-[18px]">link</span>
+<input class="bg-transparent border-none text-on-surface placeholder:text-on-surface-variant/40 w-full focus:ring-0 p-0 text-sm" placeholder="Enter URL..." type="text"/>
+</div>
+</div>
+<div class="pt-5">
+<button class="px-4 py-2 rounded-lg bg-secondary-container text-white text-sm font-semibold hover:opacity-90 transition-opacity">Analyze URL</button>
+</div>
+</div>
+</div>
+<!-- Search & Filter Bar -->
+<div class="flex items-center gap-3">
+<div class="flex-1 bg-surface-container-high/50 border border-white/5 rounded-lg flex items-center px-4 py-2.5">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input class="bg-transparent border-none w-full focus:ring-0 p-0 text-sm text-on-surface" placeholder="Search Sources..." type="text"/>
+</div>
+<button class="flex items-center gap-2 px-4 py-2.5 glass-card rounded-lg text-sm text-on-surface-variant hover:text-on-surface transition-colors">
+            Source Type <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+<!-- History List -->
+<div>
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-baseline gap-2">
+<h3 class="font-headline-md text-xl">History</h3>
+<span class="text-on-surface-variant/50 text-sm">(4)</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="px-3 py-1.5 text-[11px] font-bold uppercase rounded glass-card text-on-surface-variant hover:text-on-surface">Select All</button>
+<button class="px-3 py-1.5 text-[11px] font-bold uppercase rounded glass-card text-error hover:bg-error/10">Delete Selected</button>
+<button class="px-3 py-1.5 text-[11px] font-bold uppercase rounded glass-card text-error hover:bg-error/10">Clear All</button>
+</div>
+</div>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="glass-card p-4 rounded-xl flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all">
+<input class="w-5 h-5 rounded border-white/10 bg-black/40 text-secondary focus:ring-secondary/20" type="checkbox"/>
+<div class="w-12 h-12 rounded-lg bg-tertiary-container/20 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface line-clamp-1">Build Auth API System | Forgot Password &amp; Reset Password in React | Part 09</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="flex items-center gap-1 text-[11px] text-secondary font-bold uppercase">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Completed
+                  </span>
+<span class="text-[11px] text-on-surface-variant/60">• 2026-06-26</span>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+<!-- Item 2 -->
+<div class="glass-card p-4 rounded-xl flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all border-l-4 border-secondary/50 bg-white/5">
+<input checked="" class="w-5 h-5 rounded border-white/10 bg-black/40 text-secondary focus:ring-secondary/20" type="checkbox"/>
+<div class="w-12 h-12 rounded-lg bg-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[28px]">language</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface">ChatGPT</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="flex items-center gap-1 text-[11px] text-secondary font-bold uppercase">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Completed
+                  </span>
+<span class="text-[11px] text-on-surface-variant/60">• 2026-06-26</span>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant">more_vert</button>
+</div>
+<!-- Item 3 -->
+<div class="glass-card p-4 rounded-xl flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all">
+<input class="w-5 h-5 rounded border-white/10 bg-black/40 text-secondary focus:ring-secondary/20" type="checkbox"/>
+<div class="w-12 h-12 rounded-lg bg-tertiary-container/20 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface line-clamp-1">Build Auth API System | Forgot Password &amp; Reset Password in React | Part 09</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="flex items-center gap-1 text-[11px] text-secondary font-bold uppercase">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Completed
+                  </span>
+<span class="text-[11px] text-on-surface-variant/60">• 2026-06-26</span>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+<!-- Item 4 -->
+<div class="glass-card p-4 rounded-xl flex items-center gap-4 group cursor-pointer hover:bg-white/5 transition-all">
+<input class="w-5 h-5 rounded border-white/10 bg-black/40 text-secondary focus:ring-secondary/20" type="checkbox"/>
+<div class="w-12 h-12 rounded-lg bg-tertiary-container/20 flex items-center justify-center text-tertiary-container">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">play_circle</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-semibold text-on-surface line-clamp-1">Android App Development Full Course with PRACTICAL | Beginners to Advanced | Full Course 2025</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="flex items-center gap-1 text-[11px] text-secondary font-bold uppercase">
+<span class="material-symbols-outlined text-[14px]">check_circle</span> Completed
+                  </span>
+<span class="text-[11px] text-on-surface-variant/60">• 2026-06-26</span>
+</div>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Preview Pane -->
+<div class="w-1/2 p-gutter flex flex-col relative overflow-hidden">
+<div class="absolute inset-0 pointer-events-none opacity-20">
+
+</div>
+<div class="flex-1 glass-panel rounded-2xl flex flex-col items-center justify-center text-center p-12 border-dashed border-2 border-white/10">
+<div class="w-24 h-24 rounded-full bg-secondary-container/10 flex items-center justify-center mb-6 relative">
+<div class="absolute inset-0 rounded-full action-gradient animate-ping opacity-20"></div>
+<span class="material-symbols-outlined text-secondary text-[48px]">auto_awesome_motion</span>
+</div>
+<h2 class="font-display-lg text-2xl text-on-surface mb-3">AI Knowledge Insights</h2>
+<p class="text-on-surface-variant max-w-md mx-auto text-body-md leading-relaxed">
+            Select a source from the list on the left to view comprehensive AI-generated summaries, key takeaways, and neural visualizations.
+          </p>
+<div class="mt-8 flex gap-3">
+<div class="px-4 py-2 rounded-lg glass-card text-[11px] font-bold text-secondary uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">bolt</span> Real-time Processing
+            </div>
+<div class="px-4 py-2 rounded-lg glass-card text-[11px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">psychology</span> Deep Contextual Analysis
+            </div>
+</div>
+</div>
+<!-- Footnote Status -->
+<div class="mt-6 flex items-center justify-between text-[11px] text-on-surface-variant/40 px-2 font-label-md uppercase tracking-[0.2em]">
+<span>Processing Engine: V4.2-Luminous</span>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1.5"><div class="w-1.5 h-1.5 rounded-full bg-green-500"></div> System Optimized</span>
+<span>Uptime: 99.98%</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+    // Subtle hover effect for the glass cards
+    document.querySelectorAll('.glass-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        card.style.setProperty('--mouse-x', `${x}px`);
+        card.style.setProperty('--mouse-y', `${y}px`);
+      });
+    });
+
+    // Quick Select Interaction
+    const items = document.querySelectorAll('.glass-card');
+    items.forEach(item => {
+      item.addEventListener('click', (e) => {
+        if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
+          items.forEach(i => i.classList.remove('bg-white/5', 'border-l-4', 'border-secondary/50'));
+          item.classList.add('bg-white/5', 'border-l-4', 'border-secondary/50');
+        }
+      });
+    });
+  </script>
+</body></html>

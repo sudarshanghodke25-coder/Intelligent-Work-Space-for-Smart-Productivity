@@ -26,7 +26,7 @@ class DocumentAdapter(BaseAdapter):
     """
 
     adapter_name = "DocumentAdapter"
-    supported_input_formats  = [".docx", ".doc", ".txt", ".md", ".html"]
+    supported_input_formats  = [".docx", ".doc", ".pptx", ".ppt", ".txt", ".md", ".html"]
     supported_output_formats = [".docx", ".txt", ".html", ".md", ".pdf"]
 
     def convert(self, job: ConversionJob) -> str:
@@ -40,8 +40,8 @@ class DocumentAdapter(BaseAdapter):
                 return self._docx_to_text(job)
             elif src_ext in (".docx", ".doc") and tgt_ext == ".html":
                 return self._docx_to_html(job)
-            elif src_ext in (".docx", ".doc") and tgt_ext == ".pdf":
-                return self._docx_to_pdf(job)
+            elif src_ext in (".docx", ".doc", ".pptx", ".ppt") and tgt_ext == ".pdf":
+                return self._to_pdf_via_com(job)
             elif src_ext in (".docx", ".doc") and tgt_ext == ".md":
                 return self._docx_to_markdown(job)
             elif src_ext == ".txt" and tgt_ext == ".docx":
@@ -147,21 +147,25 @@ class DocumentAdapter(BaseAdapter):
         job.report_progress(1.0, "Done!")
         return str(out_path)
 
-    # ── DOCX → PDF ─────────────────────────────────────────────────────────
+    # ── Document → PDF (Word & PowerPoint) ─────────────────────────────────────────────────────────
 
-    def _docx_to_pdf(self, job: ConversionJob) -> str:
+    def _to_pdf_via_com(self, job: ConversionJob) -> str:
         """
-        Attempt Word COM automation on Windows.
+        Attempt Office COM automation on Windows.
         Fallback: LibreOffice headless subprocess.
         """
         job.report_progress(0.1, "Converting to PDF…")
         self._check_cancelled(job)
         out_path = self._resolve_output_path(job)
 
-        # Strategy 1: comtypes / Word COM (Windows only)
+        # Strategy 1: comtypes / Office COM (Windows only)
         if sys.platform == "win32":
             try:
-                return self._docx_to_pdf_via_word_com(job, out_path)
+                src_ext = job.source_ext.lower()
+                if src_ext in (".pptx", ".ppt"):
+                    return self._pptx_to_pdf_via_powerpoint_com(job, out_path)
+                else:
+                    return self._docx_to_pdf_via_word_com(job, out_path)
             except Exception:
                 pass  # fall through to LibreOffice
 
@@ -170,8 +174,43 @@ class DocumentAdapter(BaseAdapter):
             return self._docx_to_pdf_via_libreoffice(job, out_path)
         except Exception as exc:
             raise ConversionFailureError(
-                f"DOCX→PDF requires Microsoft Word (Windows) or LibreOffice: {exc}", exc
+                f"Document→PDF requires Microsoft Office (Windows) or LibreOffice: {exc}", exc
             ) from exc
+
+    def _pptx_to_pdf_via_powerpoint_com(self, job: ConversionJob, out_path: Path) -> str:
+        """Use Microsoft PowerPoint COM automation (Windows only)."""
+        try:
+            import comtypes.client
+        except ImportError:
+            raise RuntimeError("comtypes not available.")
+
+        ppt = None
+        pres = None
+        try:
+            ppt = comtypes.client.CreateObject("Powerpoint.Application")
+            ppt.DisplayAlerts = 1  # ppAlertsNone = 1
+            # PowerPoint COM requires presentation to be opened. We don't make it visible if possible.
+            pres = ppt.Presentations.Open(str(Path(job.source_path).resolve()), ReadOnly=True, WithWindow=False)
+            job.report_progress(0.6, "Printing to PDF…")
+            self._check_cancelled(job)
+            pres.SaveAs(str(out_path.resolve()), 32)  # 32 = ppSaveAsPDF
+            job.report_progress(1.0, "Done!")
+            return str(out_path)
+        finally:
+            if pres is not None:
+                try:
+                    pres.Close()
+                except Exception:
+                    pass
+            if ppt is not None:
+                try:
+                    if ppt.Presentations.Count == 0:
+                        ppt.Quit()
+                except Exception:
+                    try:
+                        ppt.Quit()
+                    except Exception:
+                        pass
 
     def _docx_to_pdf_via_word_com(self, job: ConversionJob, out_path: Path) -> str:
         """Use Microsoft Word COM automation (Windows only)."""
@@ -180,16 +219,29 @@ class DocumentAdapter(BaseAdapter):
         except ImportError:
             raise RuntimeError("comtypes not available.")
 
-        word = comtypes.client.CreateObject("Word.Application")
-        word.Visible = False
-        doc = word.Documents.Open(str(Path(job.source_path).resolve()))
-        job.report_progress(0.6, "Printing to PDF…")
-        self._check_cancelled(job)
-        doc.SaveAs(str(out_path.resolve()), FileFormat=17)  # 17 = wdFormatPDF
-        doc.Close(False)
-        word.Quit()
-        job.report_progress(1.0, "Done!")
-        return str(out_path)
+        word = None
+        doc = None
+        try:
+            word = comtypes.client.CreateObject("Word.Application")
+            word.Visible = False
+            word.DisplayAlerts = 0  # wdAlertsNone
+            doc = word.Documents.Open(str(Path(job.source_path).resolve()), ReadOnly=True)
+            job.report_progress(0.6, "Printing to PDF…")
+            self._check_cancelled(job)
+            doc.ExportAsFixedFormat(OutputFileName=str(out_path.resolve()), ExportFormat=17)  # 17 = wdExportFormatPDF
+            job.report_progress(1.0, "Done!")
+            return str(out_path)
+        finally:
+            if doc is not None:
+                try:
+                    doc.Close(False)
+                except Exception:
+                    pass
+            if word is not None:
+                try:
+                    word.Quit()
+                except Exception:
+                    pass
 
     def _docx_to_pdf_via_libreoffice(self, job: ConversionJob, out_path: Path) -> str:
         """Use LibreOffice headless conversion."""

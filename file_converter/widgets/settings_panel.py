@@ -32,10 +32,10 @@ class SettingsPanel(ctk.CTkFrame):
     ):
         super().__init__(
             parent,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=16,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             **kwargs,
         )
         self._on_change = on_settings_change
@@ -50,7 +50,6 @@ class SettingsPanel(ctk.CTkFrame):
             "enable_ocr": "0",
             "keep_formatting": "1",
             "open_after": "0",
-            "page_range": "",
             "output_folder": str(Path.home() / "Downloads"),
         }
         if initial_settings:
@@ -62,10 +61,10 @@ class SettingsPanel(ctk.CTkFrame):
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=24, pady=24)
 
-        # ── Row 1: Convert To, Output Quality, Page Range ────────────────
+        # ── Row 1: Convert To, Output Quality ────────────────────────────────
         row1 = ctk.CTkFrame(container, fg_color="transparent")
         row1.pack(fill="x", pady=(0, 20))
-        row1.columnconfigure((0, 1, 2), weight=1, uniform="col")
+        row1.columnconfigure((0, 1), weight=1, uniform="col")
 
         col1 = ctk.CTkFrame(row1, fg_color="transparent")
         col1.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
@@ -76,21 +75,6 @@ class SettingsPanel(ctk.CTkFrame):
         col2.grid(row=0, column=1, sticky="nsew", padx=(10, 10))
         self._quality_var = ctk.StringVar(value=self._settings.get("quality", "High Quality"))
         self._add_dropdown_col(col2, "Output Quality", self._quality_var, ["High Quality", "Medium Quality", "Low Quality"], "quality")
-
-        col3 = ctk.CTkFrame(row1, fg_color="transparent")
-        col3.grid(row=0, column=2, sticky="nsew", padx=(10, 0))
-        ctk.CTkLabel(
-            col3, text="Page Range (PDF only)", font=Fonts.SMALL, text_color=Colors.TEXT_PRIMARY, anchor="w", fg_color="transparent"
-        ).pack(fill="x", pady=(0, 4))
-        self._page_entry = ctk.CTkEntry(
-            col3, height=36, corner_radius=8, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, font=Fonts.ENTRY
-        )
-        self._page_entry.insert(0, self._settings.get("page_range", ""))
-        self._page_entry.bind("<FocusOut>", self._on_page_range_change)
-        self._page_entry.pack(fill="x")
-        ctk.CTkLabel(
-            col3, text="Example: 1,3,5-8", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED, anchor="w", fg_color="transparent"
-        ).pack(fill="x", pady=(4, 0))
 
         # ── Row 2: OCR, Keep Formatting, Compress ────────────────────────
         row2 = ctk.CTkFrame(container, fg_color="transparent")
@@ -112,7 +96,7 @@ class SettingsPanel(ctk.CTkFrame):
         self._compress_var = ctk.BooleanVar(value=self._settings.get("compression") != "None")
         self._add_toggle_col(tcol3, "Compress Output", "Reduce file size", self._compress_var, "compression_toggle")
 
-        sep = ctk.CTkFrame(container, fg_color=Colors.GLASS_BORDER, height=1)
+        sep = ctk.CTkFrame(container, fg_color=Colors.BORDER_SUBTLE, height=1)
         sep.pack(fill="x", pady=(0, 20))
 
         # ── Output Folder ─────────────────────────────────────────────────
@@ -123,7 +107,7 @@ class SettingsPanel(ctk.CTkFrame):
         folder_row = ctk.CTkFrame(container, fg_color="transparent")
         folder_row.pack(fill="x", pady=(0, 20))
 
-        folder_input_frame = ctk.CTkFrame(folder_row, fg_color=Colors.ENTRY_BG, corner_radius=8, border_width=1, border_color=Colors.ENTRY_BORDER, height=40)
+        folder_input_frame = ctk.CTkFrame(folder_row, fg_color=Colors.INPUT_BG, corner_radius=8, border_width=1, border_color=Colors.INPUT_BORDER, height=40)
         folder_input_frame.pack(side="left", fill="x", expand=True)
         folder_input_frame.pack_propagate(False)
         
@@ -133,7 +117,7 @@ class SettingsPanel(ctk.CTkFrame):
         
         ctk.CTkButton(
             folder_row, text="Change", width=80, height=40, corner_radius=8,
-            fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER,
+            fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER,
             text_color=Colors.TEXT_PRIMARY, font=Fonts.SMALL,
             command=self._choose_folder
         ).pack(side="left", padx=(10, 20))
@@ -159,7 +143,7 @@ class SettingsPanel(ctk.CTkFrame):
         ).pack(fill="x", pady=(0, 4))
         ctk.CTkOptionMenu(
             parent, variable=var, values=options, height=36, corner_radius=8,
-            fg_color=Colors.GLASS_FILL_LIGHT, button_color=Colors.ACCENT_MUTED,
+            fg_color=Colors.CARD_FLOATING, button_color=Colors.BORDER_ACTIVE,
             button_hover_color=Colors.ACCENT_HOVER, text_color=Colors.TEXT_PRIMARY,
             font=Fonts.SMALL, command=lambda v, k=key: self._emit({k: v})
         ).pack(fill="x")
@@ -172,7 +156,7 @@ class SettingsPanel(ctk.CTkFrame):
         ).pack(side="left")
         ctk.CTkSwitch(
             header, text="", variable=var, onvalue=True, offvalue=False,
-            fg_color=Colors.GLASS_FILL_LIGHT, progress_color=Colors.ACCENT_PRIMARY,
+            fg_color=Colors.CARD_FLOATING, progress_color=Colors.ACCENT_PRIMARY,
             button_color=Colors.TEXT_PRIMARY, width=36, height=20,
             command=lambda k=key, v=var: self._emit({k: "1" if v.get() else "0"}) if k != "compression_toggle" else self._emit({"compression": "Medium" if v.get() else "None"})
         ).pack(side="right")
@@ -184,9 +168,6 @@ class SettingsPanel(ctk.CTkFrame):
         self._settings.update(delta)
         if self._on_change:
             self._on_change(self._settings.copy())
-
-    def _on_page_range_change(self, _=None) -> None:
-        self._emit({"page_range": self._page_entry.get()})
 
     def _choose_folder(self) -> None:
         if self._on_folder:

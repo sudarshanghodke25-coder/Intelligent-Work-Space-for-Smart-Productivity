@@ -107,7 +107,7 @@ class TasksView(ctk.CTkFrame):
 
     # --- LEFT PANEL (NAVIGATION) ---
     def _build_left_panel(self):
-        self.left_frame = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=20, border_width=1, border_color=Colors.GLASS_BORDER)
+        self.left_frame = ctk.CTkFrame(self, fg_color=Colors.CARD_BG, corner_radius=20, border_width=1, border_color=Colors.BORDER_SUBTLE)
         self.left_frame.grid(row=0, column=0, sticky="nsew", padx=(10, 10), pady=10)
         self.left_frame.pack_propagate(False)
         
@@ -117,7 +117,7 @@ class TasksView(ctk.CTkFrame):
         
         ctk.CTkButton(
             self.left_frame, text="+ New Task", font=Fonts.BUTTON, height=40,
-            fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.ACCENT_SUBTLE,
+            fg_color=Colors.CARD_FLOATING, hover_color=Colors.ACCENT_SUBTLE,
             border_width=1, border_color=Colors.ACCENT_PRIMARY, corner_radius=12,
             command=self._open_task_modal
         ).pack(fill="x", padx=15, pady=10)
@@ -142,10 +142,10 @@ class TasksView(ctk.CTkFrame):
             ctk.CTkLabel(self.nav_container, text="No projects created", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED).pack(anchor="w", padx=15, pady=2)
 
     def _create_nav_btn(self, name):
-        btn_fg = Colors.GLASS_FILL_HOVER if self.current_filter == name else "transparent"
+        btn_fg = Colors.CARD_HOVER if self.current_filter == name else "transparent"
         btn = ctk.CTkButton(
             self.nav_container, text=name.replace("Project: ", "📁 "), font=Fonts.BODY_BOLD, anchor="w",
-            fg_color=btn_fg, hover_color=Colors.GLASS_FILL_HOVER, text_color=Colors.TEXT_PRIMARY,
+            fg_color=btn_fg, hover_color=Colors.CARD_HOVER, text_color=Colors.TEXT_PRIMARY,
             command=lambda n=name: self._set_filter(n)
         )
         btn.pack(fill="x", pady=2)
@@ -156,7 +156,7 @@ class TasksView(ctk.CTkFrame):
 
     # --- CENTER PANEL (WORKSPACE) ---
     def _build_center_panel(self):
-        self.center_frame = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=20, border_width=1, border_color=Colors.GLASS_BORDER)
+        self.center_frame = ctk.CTkFrame(self, fg_color=Colors.CARD_BG, corner_radius=20, border_width=1, border_color=Colors.BORDER_SUBTLE)
         self.center_frame.grid(row=0, column=1, sticky="nsew", padx=(0, 10), pady=10)
         self.center_frame.pack_propagate(False)
         
@@ -165,7 +165,7 @@ class TasksView(ctk.CTkFrame):
         header_area.pack(fill="x", padx=15, pady=(15, 5))
         
         # Responsive Toggles (Visible only on small screens)
-        self.toggle_left_btn = ctk.CTkButton(header_area, text="☰", width=30, height=30, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, command=lambda: self._toggle_left(not self.left_visible))
+        self.toggle_left_btn = ctk.CTkButton(header_area, text="☰", width=30, height=30, fg_color="transparent", hover_color=Colors.CARD_HOVER, command=lambda: self._toggle_left(not self.left_visible))
         self.toggle_left_btn.pack(side="left", padx=(0, 10))
         
         self.search_bar = SearchBar(header_area, command=self._on_search)
@@ -175,7 +175,7 @@ class TasksView(ctk.CTkFrame):
         sort_combo = ctk.CTkComboBox(
             header_area, values=["Due Date", "Priority", "Created Date", "Progress", "Alphabetical"],
             variable=self.sort_var, command=self._on_sort, width=120, font=Fonts.BODY,
-            fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, button_color=Colors.GLASS_FILL_LIGHT, button_hover_color=Colors.GLASS_FILL_HOVER
+            fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, button_color=Colors.CARD_FLOATING, button_hover_color=Colors.CARD_HOVER
         )
         sort_combo.pack(side="right")
         
@@ -197,7 +197,7 @@ class TasksView(ctk.CTkFrame):
         # Quick Add Bar (will be packed at bottom)
 
     def _build_quick_add_bar(self):
-        self.quick_add_frame = ctk.CTkFrame(self.center_frame, fg_color=Colors.ENTRY_BG, corner_radius=12, border_width=1, border_color=Colors.ENTRY_BORDER)
+        self.quick_add_frame = ctk.CTkFrame(self.center_frame, fg_color=Colors.INPUT_BG, corner_radius=12, border_width=1, border_color=Colors.INPUT_BORDER)
         self.quick_add_frame.pack(fill="x", side="bottom", padx=15, pady=15)
         
         self.quick_add_entry = ctk.CTkEntry(self.quick_add_frame, placeholder_text="Try: 'Study Python tomorrow at 8 PM' (Press Enter)", font=Fonts.ENTRY, fg_color="transparent", border_width=0)
@@ -291,7 +291,7 @@ class TasksView(ctk.CTkFrame):
             self.load_more_btn.destroy()
             
         if self.has_more:
-            self.load_more_btn = ctk.CTkButton(self.task_list_canvas, text="Load More", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, command=lambda: self._load_data(reset=False))
+            self.load_more_btn = ctk.CTkButton(self.task_list_canvas, text="Load More", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.CARD_HOVER, command=lambda: self._load_data(reset=False))
             self.load_more_btn.pack(pady=10)
 
     def _on_task_click(self, task):
@@ -350,14 +350,14 @@ class TasksView(ctk.CTkFrame):
 
     # --- RIGHT PANEL ---
     def _build_right_panel(self):
-        self.right_frame = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=20, border_width=1, border_color=Colors.GLASS_BORDER)
+        self.right_frame = ctk.CTkFrame(self, fg_color=Colors.CARD_BG, corner_radius=20, border_width=1, border_color=Colors.BORDER_SUBTLE)
         self.right_frame.grid(row=0, column=2, sticky="nsew", padx=(0, 10), pady=10)
         self.right_frame.pack_propagate(False)
         
         # Close button for right panel
         header = ctk.CTkFrame(self.right_frame, fg_color="transparent", height=30)
         header.pack(fill="x", padx=10, pady=(10, 0))
-        ctk.CTkButton(header, text="✕", width=24, height=24, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, command=lambda: self._toggle_right(False)).pack(side="right")
+        ctk.CTkButton(header, text="✕", width=24, height=24, fg_color="transparent", hover_color=Colors.CARD_HOVER, command=lambda: self._toggle_right(False)).pack(side="right")
         
         self.right_container = ctk.CTkFrame(self.right_frame, fg_color="transparent")
         self.right_container.pack(fill="both", expand=True, padx=10, pady=10)
@@ -397,7 +397,7 @@ class TasksView(ctk.CTkFrame):
         # Overview Tab
         p_val = task.get("progress", 0)
         ctk.CTkLabel(self.detail_panel.overview_scroll, text="Progress", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_SECONDARY).pack(anchor="w", pady=(0,5))
-        pbar2 = ctk.CTkProgressBar(self.detail_panel.overview_scroll, fg_color=Colors.ENTRY_BG, progress_color=Colors.ACCENT_PRIMARY, height=8)
+        pbar2 = ctk.CTkProgressBar(self.detail_panel.overview_scroll, fg_color=Colors.INPUT_BG, progress_color=Colors.ACCENT_PRIMARY, height=8)
         pbar2.pack(fill="x", pady=(0, 10))
         pbar2.set(p_val/100.0)
         

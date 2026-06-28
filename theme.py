@@ -1,144 +1,155 @@
 """
-Aurex Theme — Centralized design tokens.
-Deep-space nebula glassmorphism aesthetic.
+Aurex Design System — Centralized theme, typography, and animation tokens.
+Premium Desktop UI/UX (Notion/Cursor inspired).
 """
 
-
-def blend_color(hex_color: str, alpha: float, bg: str = "#1a1730") -> str:
-    """
-    Blend a hex color at a given alpha (0.0-1.0) against a background color.
-    Returns a solid 6-digit hex color simulating the alpha effect.
-    Useful because tkinter does not support 8-digit hex alpha colors.
-    """
-    fg_r = int(hex_color[1:3], 16)
-    fg_g = int(hex_color[3:5], 16)
-    fg_b = int(hex_color[5:7], 16)
-    bg_r = int(bg[1:3], 16)
-    bg_g = int(bg[3:5], 16)
-    bg_b = int(bg[5:7], 16)
-    r = int(fg_r * alpha + bg_r * (1 - alpha))
-    g = int(fg_g * alpha + bg_g * (1 - alpha))
-    b = int(fg_b * alpha + bg_b * (1 - alpha))
-    return f"#{r:02x}{g:02x}{b:02x}"
-
-
-# ── Color Palette ──────────────────────────────────────────────────────────
+def blend_color(hex_color, alpha: float, bg = "#0F172A"):
+    """Simulate CSS rgba() by blending a hex color with a background color. Supports CTk tuples."""
+    if isinstance(hex_color, tuple) or isinstance(hex_color, list):
+        bg_light = bg[0] if isinstance(bg, (tuple, list)) else bg
+        bg_dark = bg[1] if isinstance(bg, (tuple, list)) else bg
+        return (
+            blend_color(hex_color[0], alpha, bg_light),
+            blend_color(hex_color[1], alpha, bg_dark)
+        )
+    if isinstance(bg, (tuple, list)):
+        return (
+            blend_color(hex_color, alpha, bg[0]),
+            blend_color(hex_color, alpha, bg[1])
+        )
+        
+    try:
+        fg_r = int(hex_color[1:3], 16)
+        fg_g = int(hex_color[3:5], 16)
+        fg_b = int(hex_color[5:7], 16)
+        bg_r = int(bg[1:3], 16)
+        bg_g = int(bg[3:5], 16)
+        bg_b = int(bg[5:7], 16)
+        r = int(fg_r * alpha + bg_r * (1 - alpha))
+        g = int(fg_g * alpha + bg_g * (1 - alpha))
+        b = int(fg_b * alpha + bg_b * (1 - alpha))
+        return f"#{r:02x}{g:02x}{b:02x}"
+    except:
+        return hex_color
 
 class Colors:
-    # Base backgrounds
-    BG_DEEPSPACE = "#0a0a1e"
-    BG_SIDEBAR = "#0f0d1a"
-    BG_DOCK = "#110f1f"
-
-    # Glass card
-    GLASS_FILL = "#1a1730"
-    GLASS_FILL_LIGHT = "#221f38"
-    GLASS_FILL_HOVER = "#252240"
-    GLASS_BORDER = "#3a3a4a"
-    GLASS_BORDER_BRIGHT = "#4a4a5e"
-
-    # Accent purple
-    ACCENT_PRIMARY = "#7c3aed"
-    ACCENT_GLOW = "#a855f7"
-    ACCENT_HOVER = "#8b5cf6"
-    ACCENT_MUTED = "#6d28d9"
-    ACCENT_SUBTLE = "#241a3d"   # 20% opacity purple blended on dark bg
-
-    # Text
-    TEXT_PRIMARY = "#ffffff"
-    TEXT_SECONDARY = "#9ca3af"
-    TEXT_MUTED = "#6b7280"
-    TEXT_DIM = "#4b5563"
-
-    # Status colors
-    SUCCESS = "#22c55e"
-    WARNING = "#f59e0b"
-    ERROR = "#ef4444"
-    INFO = "#3b82f6"
-
-    # Category tag colors
-    TAG_MEETING = "#3b82f6"
-    TAG_WORK = "#22c55e"
-    TAG_PERSONAL = "#f59e0b"
-    TAG_BREAK = "#8b5cf6"
-
-    # Priority badge colors
-    PRIORITY_HIGH = "#ef4444"
-    PRIORITY_MEDIUM = "#f59e0b"
-    PRIORITY_LOW = "#22c55e"
-
-    # Chart palette
-    CHART_GREEN = "#22c55e"
-    CHART_AMBER = "#f59e0b"
-    CHART_RED = "#ef4444"
-    CHART_PURPLE = "#8b5cf6"
-    CHART_BLUE = "#3b82f6"
-    CHART_CYAN = "#06b6d4"
-
-    # Input fields
-    ENTRY_BG = "#15132a"
-    ENTRY_BORDER = "#2e2e3e"
-    ENTRY_FOCUS_BORDER = "#7c3aed"
-
+    """AUREX Master Color Palette"""
+    # Backgrounds
+    BG_PRIMARY = ("#F3F4F6", "#050816")
+    BG_SECONDARY = ("#FFFFFF", "#09101D")
+    BG_SIDEBAR = ("#FFFFFF", "#050816")
+    
+    # Cards & Containers
+    CARD_BG = ("#FFFFFF", "#101A30")
+    CARD_HOVER = ("#F9FAFB", "#1B2845")
+    CARD_FLOATING = ("#FFFFFF", "#14213D")
+    
+    # Borders & Lines
+    BORDER_SUBTLE = ("#E5E7EB", "#222F4D")
+    BORDER_HOVER = ("#D1D5DB", "#3B4A6F")
+    BORDER_ACTIVE = ("#8B5CF6", "#8B5CF6")
+    
+    # Accents
+    ACCENT_PRIMARY = ("#8B5CF6", "#8B5CF6")
+    ACCENT_HOVER = ("#EC4899", "#EC4899")
+    ACCENT_ACTIVE = ("#4F8BFF", "#4F8BFF")
+    ACCENT_PRESSED = ("#22D3EE", "#22D3EE")
+    ACCENT_GOLD = ("#FBBF24", "#FBBF24")
+    ACCENT_SUBTLE = ("#E0E7FF", "#1C1B3A")
+    
+    # Status & Utility
+    SUCCESS = ("#10B981", "#22C55E")
+    SUCCESS_HOVER = ("#059669", "#34D399")
+    WARNING = ("#F59E0B", "#FBBF24")
+    WARNING_HOVER = ("#D97706", "#FCD34D")
+    ERROR = ("#EF4444", "#EF4444")
+    ERROR_HOVER = ("#DC2626", "#F87171")
+    INFO = ("#3B82F6", "#4F8BFF")
+    
+    # Typography
+    TEXT_PRIMARY = ("#111827", "#FFFFFF")
+    TEXT_SECONDARY = ("#4B5563", "#B7C4E0")
+    TEXT_MUTED = ("#9CA3AF", "#7383A8")
+    TEXT_DISABLED = ("#D1D5DB", "#4E5C7C")
+    
+    # Input Fields
+    INPUT_BG = ("#F9FAFB", "#0B1120")
+    INPUT_BORDER = ("#E5E7EB", "#222F4D")
+    INPUT_FOCUS = ("#8B5CF6", "#8B5CF6")
+    
     # Transparent
     TRANSPARENT = "transparent"
 
+    # --- LEGACY ALIASES (For backwards compatibility during phased redesign) ---
+    BG_DEEPSPACE = BG_PRIMARY
+    GLASS_FILL = CARD_BG
+    GLASS_FILL_LIGHT = CARD_HOVER
+    GLASS_FILL_HOVER = CARD_HOVER
+    GLASS_BORDER = BORDER_SUBTLE
+    GLASS_BORDER_BRIGHT = BORDER_HOVER
+    ACCENT = ACCENT_PRIMARY
+    ACCENT_MUTED = ACCENT_SUBTLE
+    ACCENT_GLOW = ACCENT_ACTIVE
+    CHART_GREEN = SUCCESS
+    CHART_AMBER = WARNING
+    CHART_RED = ERROR
+    CHART_PURPLE = ACCENT_PRIMARY
+    CHART_BLUE = INFO
+    CHART_CYAN = ("#0891b2", "#06b6d4")
+    TEXT_DIM = TEXT_DISABLED
+    ENTRY_BG = INPUT_BG
+    ENTRY_BORDER = INPUT_BORDER
+    ENTRY_FOCUS_BORDER = INPUT_FOCUS
+    TAG_MEETING = INFO
+    TAG_WORK = SUCCESS
+    TAG_PERSONAL = WARNING
+    TAG_BREAK = ACCENT_PRIMARY
+    PRIORITY_HIGH = ERROR
+    PRIORITY_MEDIUM = WARNING
+    PRIORITY_LOW = SUCCESS
 
-# ── Font Definitions ───────────────────────────────────────────────────────
 
-FONT_FAMILY = "Segoe UI"
+FONT_FAMILY = "Sora"
+BODY_FONT_FAMILY = "Inter"
 
 class Fonts:
-    """Font tuples: (family, size, weight)"""
-    BRAND = (FONT_FAMILY, 22, "bold")
-    TITLE = (FONT_FAMILY, 20, "bold")
-    HEADING = (FONT_FAMILY, 16, "bold")
+    """Typography Design System"""
+    TITLE = (FONT_FAMILY, 24, "bold")
+    HEADING = (FONT_FAMILY, 18, "bold")
     SUBHEADING = (FONT_FAMILY, 14, "bold")
-    BODY = (FONT_FAMILY, 13, "normal")
-    BODY_BOLD = (FONT_FAMILY, 13, "bold")
-    SMALL = (FONT_FAMILY, 11, "normal")
-    SMALL_BOLD = (FONT_FAMILY, 11, "bold")
-    CAPTION = (FONT_FAMILY, 10, "normal")
-    MENU_ITEM = (FONT_FAMILY, 13, "normal")
-    MENU_ITEM_ACTIVE = (FONT_FAMILY, 13, "bold")
-    BUTTON = (FONT_FAMILY, 14, "bold")
-    ENTRY = (FONT_FAMILY, 13, "normal")
-
-
-# ── Dimensions ─────────────────────────────────────────────────────────────
+    BODY = (BODY_FONT_FAMILY, 13)
+    BODY_BOLD = (BODY_FONT_FAMILY, 13, "bold")
+    CAPTION = (BODY_FONT_FAMILY, 11)
+    BUTTON = (BODY_FONT_FAMILY, 13, "bold")
+    SMALL = (BODY_FONT_FAMILY, 12)
+    BRAND = (FONT_FAMILY, 20, "bold")
+    MENU_ITEM = (BODY_FONT_FAMILY, 13, "bold")
+    MENU_ITEM_ACTIVE = (BODY_FONT_FAMILY, 13, "bold")
+    SMALL_BOLD = (BODY_FONT_FAMILY, 12, "bold")
+    ENTRY = (BODY_FONT_FAMILY, 13)
 
 class Dims:
-    # Layout
-    SIDEBAR_WIDTH = 240
-    DOCK_HEIGHT = 56
-    CARD_CORNER = 16
-    CARD_BORDER = 1
-    CARD_PAD = 14
-
-    # Auth
-    AUTH_CARD_W = 440
-    AUTH_CARD_H = 520
-
-    # Sidebar
-    MENU_ITEM_HEIGHT = 40
-    PROFILE_CARD_H = 70
-    SIDEBAR_PAD_X = 16
-
-    # Entry fields
+    """Standardized Dimensions & Spacing"""
+    SIDEBAR_WIDTH = 260
+    RADIUS_S = 6
+    RADIUS_M = 12
+    RADIUS_L = 18
+    MAIN_PAD_X = 24
+    MAIN_PAD_Y = 24
+    
+    # Restored variables
+    CARD_PAD = 16
+    RADIUS_CARD = 16
+    RADIUS_PILL = 24
+    RADIUS_BUTTON = 8
+    RADIUS_INPUT = 8
+    BORDER_WIDTH = 1
+    BTN_HEIGHT = 42
+    BTN_CORNER = 8
     ENTRY_HEIGHT = 42
-    ENTRY_CORNER = 10
-
-    # Buttons
-    BTN_HEIGHT = 44
-    BTN_CORNER = 12
-    PILL_HEIGHT = 32
+    ENTRY_CORNER = 8
+    INPUT_HEIGHT = 42
+    AUTH_CARD_H = 500
     PILL_CORNER = 16
-
-    # Dock
-    DOCK_ENTRY_HEIGHT = 40
-    DOCK_BTN_SIZE = 38
-
-    # Charts
-    DONUT_SIZE = 140
-    DONUT_THICKNESS = 22
-    BAR_GAP = 8
+    PILL_HEIGHT = 32
+    BUTTON_HEIGHT_LARGE = 48

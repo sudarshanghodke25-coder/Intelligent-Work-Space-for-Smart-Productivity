@@ -43,7 +43,7 @@ class FocusView(ctk.CTkFrame):
         self.clock_label = ctk.CTkLabel(
             container, text="25:00",
             font=("Segoe UI", 96, "bold"),
-            text_color=Colors.ACCENT_GLOW
+            text_color=Colors.ACCENT_PRIMARY
         )
         self.clock_label.pack(pady=(20, 40))
         
@@ -71,8 +71,8 @@ class FocusView(ctk.CTkFrame):
         
         self.reset_btn = ctk.CTkButton(
             controls, text="Reset", font=Fonts.BUTTON,
-            fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER,
-            text_color=Colors.TEXT_PRIMARY, border_width=1, border_color=Colors.GLASS_BORDER,
+            fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER,
+            text_color=Colors.TEXT_PRIMARY, border_width=1, border_color=Colors.BORDER_SUBTLE,
             width=120, height=Dims.BTN_HEIGHT, corner_radius=Dims.BTN_CORNER,
             command=self._reset_timer
         )

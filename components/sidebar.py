@@ -79,7 +79,7 @@ class SidebarMenuItem(ctk.CTkFrame):
 
     def _on_enter(self, event=None):
         if not self._is_active:
-            self._container.configure(fg_color=Colors.GLASS_FILL_LIGHT)
+            self._container.configure(fg_color=Colors.CARD_FLOATING)
 
     def _on_leave(self, event=None):
         if not self._is_active:
@@ -92,7 +92,7 @@ class SidebarMenuItem(ctk.CTkFrame):
             self._text_label.configure(
                 text_color=Colors.TEXT_PRIMARY, font=Fonts.MENU_ITEM_ACTIVE
             )
-            self._icon_label.configure(text_color=Colors.ACCENT_GLOW)
+            self._icon_label.configure(text_color=Colors.ACCENT_PRIMARY)
         else:
             self._container.configure(fg_color="transparent")
             self._text_label.configure(
@@ -131,7 +131,7 @@ class Sidebar(ctk.CTkFrame):
         # Geometric logo indicator (diamond shape via unicode)
         ctk.CTkLabel(
             brand_frame, text="◆",
-            font=("Segoe UI", 22, "bold"), text_color=Colors.ACCENT_GLOW,
+            font=("Segoe UI", 22, "bold"), text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent"
         ).pack(side="left", padx=(0, 8))
 
@@ -142,7 +142,7 @@ class Sidebar(ctk.CTkFrame):
         ).pack(side="left")
 
         # Separator
-        sep = ctk.CTkFrame(self, fg_color=Colors.GLASS_BORDER, height=1)
+        sep = ctk.CTkFrame(self, fg_color=Colors.BORDER_SUBTLE, height=1)
         sep.pack(fill="x", padx=Dims.SIDEBAR_PAD_X, pady=(4, 12))
 
         # ── Menu Section ────────────────────────────────────────────────
@@ -182,9 +182,9 @@ class Sidebar(ctk.CTkFrame):
 
         # ── Profile Card ────────────────────────────────────────────────
         profile_card = ctk.CTkFrame(
-            self, fg_color=Colors.GLASS_FILL,
+            self, fg_color=Colors.CARD_BG,
             corner_radius=12, border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             height=Dims.PROFILE_CARD_H
         )
         profile_card.pack(fill="x", padx=12, pady=(8, 16))
@@ -242,7 +242,7 @@ class Sidebar(ctk.CTkFrame):
         logout_btn = ctk.CTkButton(
             profile_inner, text="↪",
             font=("Segoe UI", 16), text_color=Colors.TEXT_SECONDARY,
-            fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER,
+            fg_color="transparent", hover_color=Colors.CARD_HOVER,
             width=30, height=30, corner_radius=8,
             command=self._on_logout
         )

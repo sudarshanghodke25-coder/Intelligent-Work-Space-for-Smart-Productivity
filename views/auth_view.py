@@ -4,7 +4,7 @@ AuthView — Login / Signup authentication frame with glassmorphism styling.
 import customtkinter as ctk
 import math
 from theme import Colors, Fonts, Dims
-from services.auth_service import login_user, signup_user, check_active_session, clear_saved_profile
+from services.auth_service import seamless_auth, login_user, signup_user, check_active_session, clear_saved_profile
 
 class AuthView(ctk.CTkFrame):
     """
@@ -20,15 +20,7 @@ class AuthView(ctk.CTkFrame):
         has_profile, auto_login, profile_data = check_active_session()
         self._saved_profile_data = profile_data
         
-        if auto_login:
-            # Token completely valid, skip UI
-            self.after(10, self._trigger_success)
-            return
-
-        if has_profile:
-            self._mode = "quick_login"
-        else:
-            self._mode = "login"
+        self._mode = "login"
 
         # Center the auth card
         self.grid_rowconfigure(0, weight=1)
@@ -37,10 +29,10 @@ class AuthView(ctk.CTkFrame):
         # Outer glass card - Dual Pane layout (wider)
         self.card = ctk.CTkFrame(
             self,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=20,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             width=960,  
             height=Dims.AUTH_CARD_H,
         )
@@ -70,7 +62,7 @@ class AuthView(ctk.CTkFrame):
         
         ctk.CTkLabel(
             header_frame, text="◆",
-            font=("Segoe UI", 36, "bold"), text_color=Colors.ACCENT_GLOW,
+            font=("Segoe UI", 36, "bold"), text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent"
         ).pack(pady=(0, 4))
 
@@ -100,43 +92,38 @@ class AuthView(ctk.CTkFrame):
             
         self.remember_var = ctk.BooleanVar(value=True)
 
-        if self._mode == "quick_login":
-            self.subtitle.configure(text="Welcome back")
-            
-            # Avatar circle
-            avatar_frame = ctk.CTkFrame(self.form_frame, width=80, height=80, corner_radius=40, fg_color=Colors.ACCENT_PRIMARY)
-            avatar_frame.pack(pady=(10, 10))
-            avatar_frame.pack_propagate(False)
-            
-            full_name = self._saved_profile_data.get("full_name", "User")
-            initials = full_name[0].upper() if full_name else "U"
-            if " " in full_name:
-                initials += full_name.split()[-1][0].upper()
-                
-            ctk.CTkLabel(avatar_frame, text=initials, font=("Segoe UI", 32, "bold"), text_color=Colors.TEXT_PRIMARY, fg_color="transparent").place(relx=0.5, rely=0.5, anchor="center")
-            
-            # Continue text
-            ctk.CTkLabel(self.form_frame, text=f"Continue as {full_name}", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(pady=(0, 20))
-            
-            # Password field only
-            self._create_input_field("Password", "••••••••", "password_entry", show="•")
-            
-            # Quick Login Button
-            btn_text = "Quick Login"
-            auth_command = self._authenticate_quick
-            
-        elif self._mode == "signup":
-            self.subtitle.configure(text="Create your account")
+        if self._mode == "signup":
+            self.subtitle.configure(text="Create a new workspace account")
+            self._create_input_field("Full Name", "E.g., John Doe", "name_entry")
             self._create_input_field("Username", "E.g., johndoe", "username_entry")
             self._create_input_field("Email", "E.g., johndoe@aurex.com", "email_entry")
+            self._create_input_field("Date of Birth (YYYY-MM-DD)", "E.g., 2000-01-01", "dob_entry")
+            
+            # Age Label
+            self.age_label = ctk.CTkLabel(
+                self.form_frame, text="Age: --",
+                font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY,
+                fg_color="transparent", anchor="w"
+            )
+            self.age_label.pack(fill="x", pady=(0, 4))
+            self._computed_age = None
+            self.dob_entry.bind("<KeyRelease>", self._calculate_age)
+
             self._create_input_field("Password", "••••••••", "password_entry", show="•")
-            self._create_input_field("Confirm Password", "••••••••", "confirm_entry", show="•")
-            btn_text = "Create Account"
-            auth_command = self._authenticate
+            
+            btn_text = "Sign Up"
+            auth_command = self._authenticate_signup
+            toggle_text = "Already have an account? Log in"
         else:
             self.subtitle.configure(text="Sign in to your workspace")
             self._create_input_field("Email", "E.g., johndoe@aurex.com", "email_entry")
             self._create_input_field("Password", "••••••••", "password_entry", show="•")
+            
+            # Prefill if remembered
+            if self._saved_profile_data and self._saved_profile_data.get("email"):
+                self.email_entry.insert(0, self._saved_profile_data["email"])
+            if self._saved_profile_data and self._saved_profile_data.get("password"):
+                self.password_entry.insert(0, self._saved_profile_data["password"])
             
             # Remember me checkbox
             rem_frame = ctk.CTkFrame(self.form_frame, fg_color="transparent")
@@ -144,11 +131,12 @@ class AuthView(ctk.CTkFrame):
             ctk.CTkCheckBox(
                 rem_frame, text="Remember me", font=Fonts.SMALL, text_color=Colors.TEXT_SECONDARY,
                 variable=self.remember_var, fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER,
-                border_color=Colors.GLASS_BORDER_BRIGHT
+                border_color=Colors.BORDER_HOVER
             ).pack(side="left")
             
-            btn_text = "Login"
-            auth_command = self._authenticate
+            btn_text = "Log In"
+            auth_command = self._authenticate_login
+            toggle_text = "Don't have an account? Sign up"
 
         # Error message label
         self.error_label = ctk.CTkLabel(
@@ -173,21 +161,14 @@ class AuthView(ctk.CTkFrame):
         )
         auth_btn.pack(anchor="w", pady=(8, 12))
 
-        # Toggle links
-        if self._mode == "quick_login":
-            toggle_text = "Switch Account"
-            cmd = self._switch_account
-        else:
-            toggle_text = "Already have an account?" if self._mode == "signup" else "Create an account"
-            cmd = self._toggle_mode
-            
+        # Toggle link
         toggle_btn = ctk.CTkLabel(
             self.form_frame, text=toggle_text,
             font=Fonts.SMALL, text_color=Colors.TEXT_SECONDARY,
             cursor="hand2", fg_color="transparent"
         )
         toggle_btn.pack(anchor="w")
-        toggle_btn.bind("<Button-1>", cmd)
+        toggle_btn.bind("<Button-1>", self._toggle_mode)
         toggle_btn.bind("<Enter>", lambda e: toggle_btn.configure(text_color=Colors.TEXT_PRIMARY))
         toggle_btn.bind("<Leave>", lambda e: toggle_btn.configure(text_color=Colors.TEXT_SECONDARY))
 
@@ -204,8 +185,8 @@ class AuthView(ctk.CTkFrame):
             placeholder_text=placeholder,
             placeholder_text_color=Colors.TEXT_DIM,
             font=Fonts.ENTRY, text_color=Colors.TEXT_PRIMARY,
-            fg_color=Colors.ENTRY_BG,
-            border_width=1, border_color=Colors.ENTRY_BORDER,
+            fg_color=Colors.INPUT_BG,
+            border_width=1, border_color=Colors.INPUT_BORDER,
             corner_radius=Dims.ENTRY_CORNER,
             height=Dims.ENTRY_HEIGHT,
             width=380,
@@ -224,79 +205,99 @@ class AuthView(ctk.CTkFrame):
         self._mode = "signup" if self._mode == "login" else "login"
         self._populate_form()
 
-    def _authenticate_quick(self):
-        self.error_label.configure(text="", text_color=Colors.ERROR)
-        password = self.password_entry.get().strip()
-        email = self._saved_profile_data.get("email")
-        
-        if len(password) < 4:
-            self.error_label.configure(text="Password must be at least 4 characters.")
+    def _calculate_age(self, event=None):
+        if not hasattr(self, "dob_entry") or not hasattr(self, "age_label"):
             return
-            
-        success, msg = login_user(email, password, remember_me=True)
-        if success:
-            self._trigger_success()
+        dob_text = self.dob_entry.get().strip()
+        if len(dob_text) == 10 and dob_text.count("-") == 2:
+            try:
+                from datetime import datetime
+                dob_date = datetime.strptime(dob_text, "%Y-%m-%d")
+                today = datetime.now()
+                age = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
+                if age >= 0:
+                    self.age_label.configure(text=f"Age: {age} years old", text_color=Colors.SUCCESS)
+                    self._computed_age = age
+                else:
+                    self.age_label.configure(text="Age: Invalid", text_color=Colors.ERROR)
+                    self._computed_age = None
+            except ValueError:
+                self.age_label.configure(text="Age: Invalid format", text_color=Colors.ERROR)
+                self._computed_age = None
         else:
-            self.error_label.configure(text=msg)
+            self.age_label.configure(text="Age: --", text_color=Colors.TEXT_PRIMARY)
+            self._computed_age = None
 
-    def _authenticate(self):
-        """Process the authentication logic based on mode."""
+    def _authenticate_login(self):
         self.error_label.configure(text="", text_color=Colors.ERROR)
         
         email = self.email_entry.get().strip()
         password = self.password_entry.get().strip()
 
-        if not email:
-            self.error_label.configure(text="Please enter your email.")
+        if not email or not password:
+            self.error_label.configure(text="Please enter your email and password.")
+            return
+
+        success, msg = login_user(email, password, remember_me=self.remember_var.get())
+        
+        if success:
+            self._trigger_success()
+        else:
+            self.error_label.configure(text=msg)
+
+    def _authenticate_signup(self):
+        self.error_label.configure(text="", text_color=Colors.ERROR)
+        
+        name = self.name_entry.get().strip()
+        username = getattr(self, "username_entry", None)
+        username = username.get().strip() if username else ""
+        email = self.email_entry.get().strip()
+        password = self.password_entry.get().strip()
+        dob = getattr(self, "dob_entry", None)
+        dob = dob.get().strip() if dob else ""
+        age = getattr(self, "_computed_age", None)
+
+        if not name or not username or not email or not password or not dob:
+            self.error_label.configure(text="Please fill out all fields.")
+            return
+        if age is None:
+            self.error_label.configure(text="Please enter a valid Date of Birth (YYYY-MM-DD).")
             return
         if len(password) < 4:
             self.error_label.configure(text="Password must be at least 4 characters.")
             return
-
-        if self._mode == "signup":
-            username = self.username_entry.get().strip()
-            confirm = self.confirm_entry.get().strip()
-            if not username:
-                self.error_label.configure(text="Please enter a username.")
-                return
-            if password != confirm:
-                self.error_label.configure(text="Passwords do not match.")
-                return
             
-            # Sign up via auth service
-            success, msg = signup_user("User", email, username, password)
-            if success:
-                self._mode = "login"
-                self._populate_form()
-                self.error_label.configure(text="Account created. Please log in.", text_color=Colors.SUCCESS)
-            else:
-                self.error_label.configure(text=msg)
-                
-        else:
-            rem = self.remember_var.get()
-            success, msg = login_user(email, password, remember_me=rem)
-            if success:
+        success, msg = signup_user(name, email, username, password, dob, age)
+        
+        if success:
+            # Auto-login after signup
+            login_success, _ = login_user(email, password, remember_me=True)
+            if login_success:
                 self._trigger_success()
             else:
-                self.error_label.configure(text=msg)
+                self.error_label.configure(text="Account created, but failed to log in.")
+        else:
+            self.error_label.configure(text=msg)
 
     def _build_graphic(self):
         """Draw the abstract floating antigravity network graphic."""
+        from utils.animations import resolve_color
+        
         canvas = ctk.CTkCanvas(
-            self.right_pane, bg=Colors.GLASS_FILL, highlightthickness=0,
+            self.right_pane, bg=resolve_color(Colors.CARD_BG), highlightthickness=0,
             width=460, height=Dims.AUTH_CARD_H - 40
         )
         canvas.pack(fill="both", expand=True)
 
         nodes = [
-            (220, 260, 25, Colors.ACCENT_GLOW),     # Core node
-            (120, 200, 15, Colors.ACCENT_PRIMARY),
-            (320, 220, 15, Colors.ACCENT_HOVER),
-            (150, 350, 18, Colors.ACCENT_PRIMARY),
-            (300, 340, 12, Colors.ACCENT_GLOW),
-            (200, 120, 12, Colors.ACCENT_HOVER),
-            (280, 150, 8, Colors.ACCENT_PRIMARY),
-            (100, 280, 10, Colors.ACCENT_GLOW)
+            (220, 260, 25, resolve_color(Colors.ACCENT_PRIMARY)),     # Core node
+            (120, 200, 15, resolve_color(Colors.ACCENT_PRIMARY)),
+            (320, 220, 15, resolve_color(Colors.ACCENT_HOVER)),
+            (150, 350, 18, resolve_color(Colors.ACCENT_PRIMARY)),
+            (300, 340, 12, resolve_color(Colors.ACCENT_PRIMARY)),
+            (200, 120, 12, resolve_color(Colors.ACCENT_HOVER)),
+            (280, 150, 8, resolve_color(Colors.ACCENT_PRIMARY)),
+            (100, 280, 10, resolve_color(Colors.ACCENT_PRIMARY))
         ]
 
         lines = [
@@ -307,11 +308,11 @@ class AuthView(ctk.CTkFrame):
         for n1, n2 in lines:
             x1, y1, _, _ = nodes[n1]
             x2, y2, _, _ = nodes[n2]
-            canvas.create_line(x1, y1, x2, y2, fill=Colors.GLASS_BORDER_BRIGHT, width=2)
+            canvas.create_line(x1, y1, x2, y2, fill=resolve_color(Colors.BORDER_HOVER), width=2)
 
         for x, y, r, color in nodes:
-            canvas.create_oval(x-r*1.5, y-r*1.5, x+r*1.5, y+r*1.5, fill="", outline=Colors.GLASS_BORDER_BRIGHT, width=1)
-            canvas.create_oval(x-r, y-r, x+r, y+r, fill=color, outline=Colors.TEXT_PRIMARY, width=1)
+            canvas.create_oval(x-r*1.5, y-r*1.5, x+r*1.5, y+r*1.5, fill="", outline=resolve_color(Colors.BORDER_HOVER), width=1)
+            canvas.create_oval(x-r, y-r, x+r, y+r, fill=color, outline=resolve_color(Colors.TEXT_PRIMARY), width=1)
             
-        canvas.create_rectangle(140, 160, 160, 175, fill=Colors.ACCENT_MUTED, outline=Colors.ACCENT_GLOW)
-        canvas.create_polygon(340, 280, 355, 295, 340, 310, fill=Colors.ACCENT_PRIMARY, outline="")
+        canvas.create_rectangle(140, 160, 160, 175, fill=resolve_color(Colors.BORDER_ACTIVE), outline=resolve_color(Colors.ACCENT_PRIMARY))
+        canvas.create_polygon(340, 280, 355, 295, 340, 310, fill=resolve_color(Colors.ACCENT_PRIMARY), outline="")

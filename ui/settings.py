@@ -1,35 +1,53 @@
 import customtkinter as ctk
 import json
+import os
+from PIL import Image, ImageDraw
 from pathlib import Path
 from theme import Colors, Fonts, Dims
 from ui.glass_card import GlassCard
-from authentication.session import current_session
 
 SETTINGS_FILE = Path(__file__).parent.parent / "settings.json"
+
+def create_circle_image(color, size=24):
+    if isinstance(color, (tuple, list)):
+        light_c, dark_c = color[0], color[1]
+    else:
+        light_c = dark_c = color
+        
+    img_light = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(img_light).ellipse((0, 0, size-1, size-1), fill=light_c)
+    
+    img_dark = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    ImageDraw.Draw(img_dark).ellipse((0, 0, size-1, size-1), fill=dark_c)
+    
+    return ctk.CTkImage(light_image=img_light, dark_image=img_dark, size=(size, size))
 
 class SettingsView(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):
         super().__init__(parent, fg_color="transparent", **kwargs)
-
-        self.scroll = ctk.CTkScrollableFrame(
-            self, fg_color="transparent",
-            scrollbar_button_color=Colors.GLASS_FILL_LIGHT,
-            scrollbar_button_hover_color=Colors.GLASS_FILL_HOVER,
-        )
-        self.scroll.pack(fill="both", expand=True)
         
         self.settings = self._load_settings()
-
+        
+        # Main layout
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        
         self._build_header()
-        self._build_content()
+        
+        # Content Area - Full Width Now
+        self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.content_frame.grid(row=1, column=0, sticky="nsew", padx=4, pady=4)
+        
+        self.content_frame.grid_columnconfigure(0, weight=1)
+        self.content_frame.grid_rowconfigure(0, weight=1)
+        
+        self._build_panel(self.content_frame)
 
     def _load_settings(self):
         default = {
-            "theme": "Cosmic Dark",
-            "bg_intensity": 50,
-            "glass_transparency": 50,
-            "card_brightness": 50,
-            "accent_color": "Purple"
+            "theme": "Dark",
+            "font_color": Colors.TEXT_PRIMARY,
+            "font_size": "Medium"
         }
         if SETTINGS_FILE.exists():
             try:
@@ -42,93 +60,206 @@ class SettingsView(ctk.CTkFrame):
     def _save_settings(self):
         with open(SETTINGS_FILE, "w") as f:
             json.dump(self.settings, f)
-
+            
     def _build_header(self):
-        header = ctk.CTkFrame(self.scroll, fg_color="transparent", height=60)
-        header.pack(fill="x", padx=4, pady=(8, 0))
-        header.pack_propagate(False)
+        header_container = ctk.CTkFrame(self, fg_color="transparent")
+        header_container.grid(row=0, column=0, sticky="ew", padx=4, pady=(8, 16))
+        
+        # Title area
+        title_frame = ctk.CTkFrame(header_container, fg_color="transparent")
+        title_frame.pack(fill="x", pady=(0, 16))
+        
+        icon_frame = ctk.CTkFrame(title_frame, fg_color=Colors.CARD_BG, corner_radius=12, width=40, height=40)
+        icon_frame.pack(side="left", padx=(0, 12))
+        icon_frame.pack_propagate(False)
+        ctk.CTkLabel(icon_frame, text="⚙️", font=("Segoe UI Emoji", 18)).pack(expand=True)
+        
+        text_frame = ctk.CTkFrame(title_frame, fg_color="transparent")
+        text_frame.pack(side="left")
+        ctk.CTkLabel(text_frame, text="Settings", font=Fonts.TITLE, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(text_frame, text="Manage your workspace appearance and account preferences.", font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY).pack(anchor="w")
+        
+        # Tabs area
+        tabs_frame = ctk.CTkFrame(header_container, fg_color="transparent")
+        tabs_frame.pack(fill="x")
+        
+        tabs = [
+            ("⬡ Appearance", True), ("□ Workspace", False), ("👤 Account", False), 
+            ("🔔 Notifications", False), ("🔒 Security", False), ("ℹ️ About", False)
+        ]
+        
+        for text, active in tabs:
+            color = Colors.ACCENT_PRIMARY if active else Colors.TEXT_MUTED
+            font = Fonts.BODY_BOLD if active else Fonts.BODY
+            tab = ctk.CTkLabel(tabs_frame, text=text, font=font, text_color=color, cursor="hand2")
+            tab.pack(side="left", padx=(0, 24))
+            
+            if active:
+                indicator = ctk.CTkFrame(tab, fg_color=Colors.ACCENT_PRIMARY, height=2)
+                indicator.place(relx=0, rely=0.9, relwidth=1)
 
-        ctk.CTkLabel(
-            header, text="⚙️ Settings",
-            font=Fonts.TITLE, text_color=Colors.TEXT_PRIMARY,
-            anchor="w", fg_color="transparent"
-        ).pack(side="top", fill="x")
+    def _build_panel(self, parent):
+        left_container = ctk.CTkFrame(parent, fg_color="transparent")
+        left_container.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
+        left_container.grid_rowconfigure(0, weight=1)
+        left_container.grid_columnconfigure(0, weight=1)
+        
+        scroll = ctk.CTkScrollableFrame(left_container, fg_color="transparent")
+        scroll.grid(row=0, column=0, sticky="nsew")
+        
+        app_card = GlassCard(scroll, title="")
+        app_card.pack(fill="x", pady=(0, 16))
+        
+        # Appearance Header
+        ctk.CTkLabel(app_card.content, text="Appearance", font=("Sora", 14, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(app_card.content, text="Customize the look and feel of your workspace.", font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY).pack(anchor="w", pady=(0, 24))
+        
+        # Theme (Dark/Light)
+        ctk.CTkLabel(app_card.content, text="Theme", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(app_card.content, text="Choose your preferred visual theme", font=("Inter", 11), text_color=Colors.TEXT_MUTED).pack(anchor="w", pady=(0, 12))
+        
+        themes_frame = ctk.CTkFrame(app_card.content, fg_color="transparent")
+        themes_frame.pack(fill="x", pady=(0, 24))
+        
+        themes = ["Light", "Dark"]
+        self.theme_boxes = {}
+        for theme in themes:
+            is_active = self.settings["theme"] == theme
+            t_box = ctk.CTkFrame(themes_frame, width=90, height=60, corner_radius=8, 
+                                 fg_color=Colors.CARD_FLOATING if is_active else Colors.CARD_BG,
+                                 border_width=1 if is_active else 0,
+                                 border_color=Colors.ACCENT_PRIMARY)
+            t_box.pack(side="left", padx=(0, 12))
+            t_box.pack_propagate(False)
+            t_box.bind("<Button-1>", lambda e, t=theme: self._set_theme(t))
+            
+            lbl = ctk.CTkLabel(t_box, text=theme, font=("Inter", 10), text_color=Colors.TEXT_PRIMARY)
+            lbl.pack(side="bottom", pady=4)
+            lbl.bind("<Button-1>", lambda e, t=theme: self._set_theme(t))
+            
+            if is_active:
+                check = ctk.CTkLabel(t_box, text="✓", font=("Inter", 10, "bold"), text_color="white", fg_color=Colors.ACCENT_PRIMARY, corner_radius=4)
+                check.place(relx=0.8, rely=0.1, anchor="n")
+                
+            self.theme_boxes[theme] = t_box
+                
+        # Font Color
+        color_frame = ctk.CTkFrame(app_card.content, fg_color="transparent")
+        color_frame.pack(fill="x", pady=(16, 24))
+        
+        info_frame = ctk.CTkFrame(color_frame, fg_color="transparent")
+        info_frame.pack(side="left")
+        ctk.CTkLabel(info_frame, text="Font Color", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(info_frame, text="Choose your preferred font color", font=("Inter", 11), text_color=Colors.TEXT_MUTED).pack(anchor="w")
+        
+        self.palette_frame = ctk.CTkFrame(color_frame, fg_color="transparent")
+        self.palette_frame.pack(side="right")
+        
+        self._build_font_colors()
+                
+        # Font Size
+        font_frame = ctk.CTkFrame(app_card.content, fg_color="transparent")
+        font_frame.pack(fill="x", pady=(0, 8))
+        f_info = ctk.CTkFrame(font_frame, fg_color="transparent")
+        f_info.pack(side="left")
+        ctk.CTkLabel(f_info, text="Font Size", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(f_info, text="Adjust the interface font size", font=("Inter", 11), text_color=Colors.TEXT_MUTED).pack(anchor="w")
+        
+        self.font_size_menu = ctk.CTkOptionMenu(font_frame, values=["Small", "Medium", "Large"], width=120, fg_color=Colors.INPUT_BG, 
+                          button_color=Colors.ACCENT_PRIMARY, button_hover_color=Colors.ACCENT_HOVER, command=self._set_font_size)
+        self.font_size_menu.set(self.settings["font_size"])
+        self.font_size_menu.pack(side="right")
+        
+        # Bottom Actions Bar
+        actions_bar = ctk.CTkFrame(left_container, fg_color=Colors.CARD_BG, corner_radius=16, height=60, border_width=1, border_color=Colors.BORDER_SUBTLE)
+        actions_bar.grid(row=1, column=0, sticky="ew", pady=(8, 0))
+        actions_bar.pack_propagate(False)
+        
+        info = ctk.CTkFrame(actions_bar, fg_color="transparent")
+        info.pack(side="left", padx=16, pady=10)
+        ctk.CTkLabel(info, text="Quick Actions", font=("Sora", 12, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(info, text="Reset or synchronize your settings", font=("Inter", 10), text_color=Colors.TEXT_MUTED).pack(anchor="w")
+        
+        save_btn = ctk.CTkButton(actions_bar, text="✓ Save Changes", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER, width=120, command=self._on_save)
+        save_btn.pack(side="right", padx=16, pady=16)
+        
+        reset_btn = ctk.CTkButton(actions_bar, text="↺ Reset to Defaults", fg_color="transparent", border_width=1, border_color=Colors.BORDER_SUBTLE, hover_color=Colors.CARD_HOVER, text_color=Colors.TEXT_PRIMARY, width=130, command=self._on_reset)
+        reset_btn.pack(side="right", padx=(0, 8), pady=16)
 
-        ctk.CTkLabel(
-            header, text="Manage your workspace appearance and account preferences.",
-            font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY,
-            anchor="w", fg_color="transparent"
-        ).pack(side="top", fill="x")
+    def _build_font_colors(self):
+        for widget in self.palette_frame.winfo_children():
+            widget.destroy()
+            
+        colors = [Colors.TEXT_PRIMARY, "#3B82F6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#EC4899", "#8B5CF6"]
+        for c in colors:
+            btn = ctk.CTkButton(self.palette_frame, text="", image=create_circle_image(c, 18), 
+                                width=24, height=24, fg_color="transparent", hover_color=Colors.CARD_HOVER,
+                                command=lambda col=c: self._set_font_color(col))
+            btn.pack(side="left", padx=2)
+            if c == self.settings["font_color"]:
+                btn.configure(text="✓", text_color="white", font=("Inter", 10, "bold"))
 
-    def _build_content(self):
-        # Appearance Section
-        app_card = GlassCard(self.scroll, title="Appearance")
-        app_card.pack(fill="x", padx=4, pady=10)
-        
-        # Theme Selector
-        ctk.CTkLabel(app_card.content, text="Theme", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY, anchor="w").pack(fill="x", pady=(0,5))
-        self.theme_var = ctk.StringVar(value=self.settings["theme"])
-        theme_menu = ctk.CTkOptionMenu(
-            app_card.content, values=["Cosmic Dark", "Midnight Glass", "Aurora"],
-            variable=self.theme_var, command=self._on_setting_change,
-            fg_color=Colors.ENTRY_BG, button_color=Colors.ACCENT_PRIMARY, button_hover_color=Colors.ACCENT_HOVER
-        )
-        theme_menu.pack(fill="x", pady=(0, 15))
-        
-        # Sliders
-        self._add_slider(app_card.content, "Background Intensity", "bg_intensity")
-        self._add_slider(app_card.content, "Glass Transparency", "glass_transparency")
-        self._add_slider(app_card.content, "Card Brightness", "card_brightness")
-        
-        # Accent Color
-        ctk.CTkLabel(app_card.content, text="Accent Color", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY, anchor="w").pack(fill="x", pady=(10,5))
-        self.accent_var = ctk.StringVar(value=self.settings["accent_color"])
-        accent_menu = ctk.CTkOptionMenu(
-            app_card.content, values=["Purple", "Blue", "Green", "Red", "Gold"],
-            variable=self.accent_var, command=self._on_setting_change,
-            fg_color=Colors.ENTRY_BG, button_color=Colors.ACCENT_PRIMARY, button_hover_color=Colors.ACCENT_HOVER
-        )
-        accent_menu.pack(fill="x", pady=(0, 5))
+    def _set_theme(self, theme):
+        self.settings["theme"] = theme
+        if theme == "Dark":
+            ctk.set_appearance_mode("dark")
+        elif theme == "Light":
+            ctk.set_appearance_mode("light")
 
-        # Account Section
-        acc_card = GlassCard(self.scroll, title="Account Settings")
-        acc_card.pack(fill="x", padx=4, pady=10)
-        
-        info_frame = ctk.CTkFrame(acc_card.content, fg_color="transparent")
-        info_frame.pack(fill="x", pady=(0,15))
-        
-        ctk.CTkLabel(info_frame, text=f"Username: {current_session.username}", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY, anchor="w").pack(fill="x")
-        ctk.CTkLabel(info_frame, text=f"Email: {current_session.email}", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY, anchor="w").pack(fill="x")
-        
-        btns_frame = ctk.CTkFrame(acc_card.content, fg_color="transparent")
-        btns_frame.pack(fill="x")
-        
-        ctk.CTkButton(btns_frame, text="Update Profile", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER, state="disabled").pack(side="left", padx=(0,10))
-        # ctk.CTkButton(btns_frame, text="Change Password", fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER).pack(side="left", padx=(0,10))
-        # ctk.CTkButton(btns_frame, text="Delete Account", fg_color=Colors.ERROR, hover_color="#dc2626").pack(side="left")
+            
+        for widget in self.content_frame.winfo_children():
+            widget.destroy()
+            
+        # Rebuild layout to show checkmark on the correct theme box
+        self._build_panel(self.content_frame)
 
-    def _add_slider(self, parent, label_text, setting_key):
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="x", pady=(0, 10))
-        ctk.CTkLabel(frame, text=label_text, font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY).pack(side="left")
-        slider = ctk.CTkSlider(
-            frame, from_=0, to=100, number_of_steps=100,
-            button_color=Colors.ACCENT_PRIMARY, button_hover_color=Colors.ACCENT_HOVER,
-            command=lambda v, k=setting_key: self._on_slider_change(k, v)
-        )
-        slider.set(self.settings[setting_key])
-        slider.pack(side="right", fill="x", expand=True, padx=(15,0))
+    def _set_font_color(self, color):
+        self.settings["font_color"] = color
+        self._build_font_colors()
         
-    def _on_slider_change(self, key, value):
-        self.settings[key] = int(value)
+        def update_widgets(widget):
+            # Only update elements that likely hold standard text
+            if isinstance(widget, ctk.CTkLabel):
+                try:
+                    widget.configure(text_color=color)
+                except:
+                    pass
+            for child in widget.winfo_children():
+                update_widgets(child)
+                
+        update_widgets(self.winfo_toplevel())
+
+    def _set_font_size(self, size):
+        self.settings["font_size"] = size
+        size_map = {"Small": 10, "Medium": 12, "Large": 16}
+        font_size = size_map.get(size, 12)
+        
+        def update_widgets(widget):
+            if hasattr(widget, "cget") and hasattr(widget, "configure"):
+                try:
+                    font = widget.cget("font")
+                    if isinstance(font, tuple) and len(font) >= 2:
+                        # Create new font tuple with updated size
+                        new_font = (font[0], font_size) + font[2:]
+                        widget.configure(font=new_font)
+                except:
+                    pass
+            for child in widget.winfo_children():
+                update_widgets(child)
+                
+        update_widgets(self.winfo_toplevel())
+
+    def _on_save(self):
+        # Save settings and enforce environment
         self._save_settings()
-        
-    def _on_setting_change(self, choice):
-        self.settings["theme"] = self.theme_var.get()
-        self.settings["accent_color"] = self.accent_var.get()
-        self._save_settings()
-        
-        # Add feedback if it doesn't exist
-        if not hasattr(self, 'restart_lbl'):
-            self.restart_lbl = ctk.CTkLabel(self.scroll, text="A restart is required to fully apply appearance changes.", font=Fonts.SMALL_BOLD, text_color=Colors.WARNING)
-            self.restart_lbl.pack(pady=10)
+        self._set_theme(self.settings["theme"])
+        self._set_font_color(self.settings["font_color"])
+        self._set_font_size(self.settings["font_size"])
+
+    def _on_reset(self):
+        self.settings = {
+            "theme": "Dark",
+            "font_color": Colors.TEXT_PRIMARY,
+            "font_size": "Medium"
+        }
+        self._on_save()

@@ -7,7 +7,10 @@ from services.event_bus import bus
 from services.ai_service import ai_service
 from database.database import get_connection
 from authentication.session import current_session
+from utils.ui_helpers import destroy_tracked
 import speech_recognition as sr
+
+MAX_CHAT_MESSAGES = 50
 
 class AssistantView(ctk.CTkFrame):
     """Cosmic Command Center - AI Workspace"""
@@ -20,6 +23,8 @@ class AssistantView(ctk.CTkFrame):
         self.session_id = self._get_or_create_session()
         self.user_id = current_session.user_id or 1
         self.loading_bubble = None
+        self._chat_bubbles = []
+        self._log_widgets = []
         
         # Layout: 2 Columns (75% Left, 25% Right for chat focus)
         self.grid_columnconfigure(0, weight=3)
@@ -30,6 +35,12 @@ class AssistantView(ctk.CTkFrame):
         self._build_right_column()
         
         bus.subscribe("AI_RESPONSE_RECEIVED", self._on_ai_response)
+
+    def on_show(self):
+        threading.Thread(target=self._refresh_conversation_history_async, daemon=True).start()
+
+    def _clear_chat(self):
+        destroy_tracked(self._chat_bubbles)
 
     def _get_or_create_session(self):
         conn = get_connection()
@@ -60,10 +71,10 @@ class AssistantView(ctk.CTkFrame):
 
         # Chat Area - Increased visual prominence
         self.chat_canvas = ctk.CTkScrollableFrame(
-            left_frame, fg_color=Colors.GLASS_FILL,
-            corner_radius=20, border_width=1, border_color=Colors.GLASS_BORDER,
-            scrollbar_button_color=Colors.GLASS_FILL_LIGHT,
-            scrollbar_button_hover_color=Colors.GLASS_FILL_HOVER
+            left_frame, fg_color=Colors.CARD_BG,
+            corner_radius=20, border_width=1, border_color=Colors.BORDER_SUBTLE,
+            scrollbar_button_color=Colors.CARD_FLOATING,
+            scrollbar_button_hover_color=Colors.CARD_HOVER
         )
         self.chat_canvas.pack(fill="both", expand=True, pady=(0, 20))
         
@@ -75,7 +86,7 @@ class AssistantView(ctk.CTkFrame):
         
         self.mic_btn = ctk.CTkButton(
             input_frame, text="🎤", font=("Segoe UI", 18), width=50, height=Dims.ENTRY_HEIGHT + 10,
-            fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.ACCENT_HOVER, corner_radius=15,
+            fg_color=Colors.CARD_FLOATING, hover_color=Colors.ACCENT_HOVER, corner_radius=15,
             command=self._start_voice_recognition
         )
         self.mic_btn.pack(side="left", padx=(0, 10))
@@ -83,7 +94,7 @@ class AssistantView(ctk.CTkFrame):
         self.entry = ctk.CTkEntry(
             input_frame, placeholder_text="Message Aurex...",
             font=Fonts.ENTRY, text_color=Colors.TEXT_PRIMARY,
-            fg_color=Colors.ENTRY_BG, border_width=1, border_color=Colors.ENTRY_BORDER,
+            fg_color=Colors.INPUT_BG, border_width=1, border_color=Colors.INPUT_BORDER,
             height=Dims.ENTRY_HEIGHT + 10, corner_radius=15
         )
         self.entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
@@ -99,20 +110,20 @@ class AssistantView(ctk.CTkFrame):
 
     def _build_right_column(self):
         right_frame = ctk.CTkFrame(
-            self, fg_color=Colors.GLASS_FILL,
-            corner_radius=20, border_width=1, border_color=Colors.GLASS_BORDER
+            self, fg_color=Colors.CARD_BG,
+            corner_radius=20, border_width=1, border_color=Colors.BORDER_SUBTLE
         )
         right_frame.grid(row=0, column=1, sticky="nsew")
         right_frame.pack_propagate(False)
         
         header = ctk.CTkFrame(right_frame, fg_color="transparent", height=40)
         header.pack(fill="x", padx=15, pady=(20, 10))
-        ctk.CTkLabel(header, text="💬 Conversation History", font=Fonts.HEADING, text_color=Colors.ACCENT_GLOW).pack(side="left")
+        ctk.CTkLabel(header, text="💬 Conversation History", font=Fonts.HEADING, text_color=Colors.ACCENT_PRIMARY).pack(side="left")
         
         # New Conversation Button
         new_btn = ctk.CTkButton(
             right_frame, text="+ New Conversation", font=Fonts.BUTTON,
-            fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.ACCENT_SUBTLE,
+            fg_color=Colors.CARD_FLOATING, hover_color=Colors.ACCENT_SUBTLE,
             border_width=1, border_color=Colors.ACCENT_PRIMARY, corner_radius=15,
             command=self._new_conversation
         )
@@ -134,28 +145,33 @@ class AssistantView(ctk.CTkFrame):
         
         self.session_id = new_id
         
-        # Clear chat canvas
-        for widget in self.chat_canvas.winfo_children():
-            widget.destroy()
-            
+        self._clear_chat()
         self._load_chat_history()
         self._refresh_conversation_history()
 
-    def _refresh_conversation_history(self):
-        # Clear existing
-        for widget in self.log_canvas.winfo_children():
-            widget.destroy()
-            
+    def _refresh_conversation_history_async(self):
         conn = get_connection()
         cursor = conn.cursor()
-        
-        # Fetch latest sessions
         cursor.execute("SELECT session_id, title, custom_title, updated_at FROM chat_sessions ORDER BY updated_at DESC LIMIT 15")
         sessions = cursor.fetchall()
-        
+        conn.close()
+        self.after(0, lambda: self._render_conversation_history(sessions))
+
+    def _refresh_conversation_history(self):
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT session_id, title, custom_title, updated_at FROM chat_sessions ORDER BY updated_at DESC LIMIT 15")
+        sessions = cursor.fetchall()
+        conn.close()
+        self._render_conversation_history(sessions)
+
+    def _render_conversation_history(self, sessions):
+        destroy_tracked(self._log_widgets)
+
         if not sessions:
-            ctk.CTkLabel(self.log_canvas, text="No conversation history.", text_color=Colors.TEXT_MUTED, font=Fonts.BODY).pack(pady=20)
-            conn.close()
+            lbl = ctk.CTkLabel(self.log_canvas, text="No conversation history.", text_color=Colors.TEXT_MUTED, font=Fonts.BODY)
+            lbl.pack(pady=20)
+            self._log_widgets.append(lbl)
             return
             
         for s in sessions:
@@ -165,11 +181,12 @@ class AssistantView(ctk.CTkFrame):
                 
             card = ctk.CTkFrame(
                 self.log_canvas, 
-                fg_color=Colors.GLASS_FILL_LIGHT if sid != self.session_id else Colors.ACCENT_SUBTLE,
+                fg_color=Colors.CARD_FLOATING if sid != self.session_id else Colors.ACCENT_SUBTLE,
                 corner_radius=12, border_width=1, 
-                border_color=Colors.ACCENT_MUTED if sid == self.session_id else Colors.GLASS_BORDER
+                border_color=Colors.ACCENT_PRIMARY if sid == self.session_id else Colors.BORDER_SUBTLE
             )
             card.pack(fill="x", pady=6)
+            self._log_widgets.append(card)
             
             inner = ctk.CTkFrame(card, fg_color="transparent")
             inner.pack(side="left", fill="both", expand=True, padx=12, pady=12)
@@ -201,8 +218,6 @@ class AssistantView(ctk.CTkFrame):
                     for subchild in child.winfo_children():
                         subchild.bind("<Button-1>", lambda e, s_id=sid: self._load_session(s_id))
                         subchild.configure(cursor="hand2")
-            
-        conn.close()
 
     def _confirm_delete_session(self, session_id):
         dialog = ctk.CTkToplevel(self)
@@ -228,8 +243,8 @@ class AssistantView(ctk.CTkFrame):
         def on_cancel():
             dialog.destroy()
             
-        ctk.CTkButton(btn_frame, text="Cancel", fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER, width=100, command=on_cancel).pack(side="left", padx=10)
-        ctk.CTkButton(btn_frame, text="Delete", fg_color="#E74C3C", hover_color="#C0392B", width=100, command=on_delete).pack(side="right", padx=10)
+        ctk.CTkButton(btn_frame, text="Cancel", fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER, width=100, command=on_cancel).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="Delete", fg_color=Colors.ERROR, hover_color=Colors.ERROR_HOVER, width=100, command=on_delete).pack(side="right", padx=10)
 
     def _delete_session(self, session_id):
         conn = get_connection()
@@ -250,20 +265,20 @@ class AssistantView(ctk.CTkFrame):
             
         self.session_id = session_id
         
-        # Clear chat canvas
-        for widget in self.chat_canvas.winfo_children():
-            widget.destroy()
-            
+        self._clear_chat()
         self._load_chat_history()
         self._refresh_conversation_history()
 
     def _load_chat_history(self):
         conn = get_connection()
-        history = conn.execute("SELECT role, message, timestamp FROM chat_messages WHERE session_id=? ORDER BY timestamp ASC", (self.session_id,)).fetchall()
+        history = conn.execute(
+            "SELECT role, message, timestamp FROM chat_messages WHERE session_id=? ORDER BY timestamp DESC LIMIT ?",
+            (self.session_id, MAX_CHAT_MESSAGES),
+        ).fetchall()
         conn.close()
         
         if history:
-            for row in history:
+            for row in reversed(history):
                 if row["role"] in ["user", "assistant"]:
                     self._add_bubble(row["message"], row["role"], row["timestamp"])
         else:
@@ -271,18 +286,19 @@ class AssistantView(ctk.CTkFrame):
 
     def _add_bubble(self, text, role, timestamp=None):
         row = ctk.CTkFrame(self.chat_canvas, fg_color="transparent")
-        row.pack(fill="x", pady=12, padx=10) # Increased spacing
+        row.pack(fill="x", pady=12, padx=10)
+        self._chat_bubbles.append(row)
         
         if role == "user":
-            bg_color = Colors.ACCENT_SUBTLE
-            border_color = Colors.ACCENT_MUTED
+            bg_color = Colors.ACCENT_PRIMARY # Approximates vibrant gradient feel
+            border_color = Colors.ACCENT_HOVER
             text_color = Colors.TEXT_PRIMARY
             side = "right"
             justify = "right"
             sender_text = "You"
         else:
-            bg_color = Colors.GLASS_FILL_LIGHT
-            border_color = Colors.GLASS_BORDER_BRIGHT
+            bg_color = Colors.CARD_FLOATING
+            border_color = Colors.BORDER_SUBTLE
             text_color = Colors.TEXT_PRIMARY
             side = "left"
             justify = "left"
@@ -293,7 +309,7 @@ class AssistantView(ctk.CTkFrame):
         
         header_frame = ctk.CTkFrame(bubble, fg_color="transparent")
         header_frame.pack(fill="x", padx=16, pady=(12, 0))
-        ctk.CTkLabel(header_frame, text=sender_text, font=Fonts.SMALL_BOLD, text_color=Colors.ACCENT_GLOW if role == "assistant" else Colors.TEXT_SECONDARY).pack(side="left")
+        ctk.CTkLabel(header_frame, text=sender_text, font=Fonts.SMALL_BOLD, text_color=Colors.ACCENT_PRESSED if role == "assistant" else Colors.TEXT_PRIMARY).pack(side="left")
         if timestamp:
             ts_str = timestamp if isinstance(timestamp, str) else timestamp.strftime("%H:%M")
             ctk.CTkLabel(header_frame, text=ts_str[:16], font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED).pack(side="right", padx=(15, 0))
@@ -334,7 +350,7 @@ class AssistantView(ctk.CTkFrame):
         
         self.send_btn.configure(state="normal")
         self.mic_btn.configure(state="normal")
-        self.mic_btn.configure(text="🎤", fg_color=Colors.GLASS_FILL_LIGHT)
+        self.mic_btn.configure(text="🎤", fg_color=Colors.CARD_FLOATING)
         
         # Refresh log in case actions were taken (like a new session created implicitly, although we don't do that yet, but good to refresh)
         self._refresh_conversation_history()
@@ -362,10 +378,10 @@ class AssistantView(ctk.CTkFrame):
 
     def _handle_voice_success(self, text):
         self.entry.configure(placeholder_text="Message Aurex...")
-        self.mic_btn.configure(state="normal", text="🎤", fg_color=Colors.GLASS_FILL_LIGHT)
+        self.mic_btn.configure(state="normal", text="🎤", fg_color=Colors.CARD_FLOATING)
         self._send_message(text_override=text)
         
     def _handle_voice_error(self, error_msg):
         self.entry.configure(placeholder_text="Message Aurex...")
-        self.mic_btn.configure(state="normal", text="🎤", fg_color=Colors.GLASS_FILL_LIGHT)
+        self.mic_btn.configure(state="normal", text="🎤", fg_color=Colors.CARD_FLOATING)
         self._add_bubble(f"Voice Error: {error_msg}", "assistant", datetime.datetime.now())

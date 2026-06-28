@@ -25,8 +25,8 @@ class DashboardView(ctk.CTkFrame):
         # Scrollable container for the dashboard content
         self.scroll = ctk.CTkScrollableFrame(
             self, fg_color="transparent",
-            scrollbar_button_color=Colors.GLASS_FILL_LIGHT,
-            scrollbar_button_hover_color=Colors.GLASS_FILL_HOVER,
+            scrollbar_button_color=Colors.CARD_FLOATING,
+            scrollbar_button_hover_color=Colors.CARD_HOVER,
         )
         self.scroll.pack(fill="both", expand=True)
 
@@ -74,10 +74,10 @@ class DashboardView(ctk.CTkFrame):
                 pills_frame,
                 text=f"{icon}  {label}",
                 font=Fonts.SMALL,
-                fg_color=Colors.GLASS_FILL,
-                hover_color=Colors.GLASS_FILL_HOVER,
+                fg_color=Colors.CARD_BG,
+                hover_color=Colors.CARD_HOVER,
                 text_color=Colors.TEXT_SECONDARY,
-                border_width=1, border_color=Colors.GLASS_BORDER,
+                border_width=1, border_color=Colors.BORDER_SUBTLE,
                 corner_radius=Dims.PILL_CORNER,
                 height=Dims.PILL_HEIGHT,
                 width=120,

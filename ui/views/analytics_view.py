@@ -37,11 +37,11 @@ class AnalyticsView(ctk.CTkFrame):
         
         # Chart Containers (Row 1)
         # Using native CTkFrames for charts to avoid GlassCard padding constraints clipping charts
-        self.donut_container = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=Dims.CARD_CORNER, border_width=1, border_color=Colors.GLASS_BORDER)
+        self.donut_container = ctk.CTkFrame(self, fg_color=Colors.CARD_BG, corner_radius=Dims.RADIUS_CARD, border_width=1, border_color=Colors.BORDER_SUBTLE)
         self.donut_container.grid(row=1, column=0, columnspan=1, sticky="nsew", padx=(4, 6), pady=(6, 10))
         self.donut_container.pack_propagate(False)
         
-        self.bar_container = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=Dims.CARD_CORNER, border_width=1, border_color=Colors.GLASS_BORDER)
+        self.bar_container = ctk.CTkFrame(self, fg_color=Colors.CARD_BG, corner_radius=Dims.RADIUS_CARD, border_width=1, border_color=Colors.BORDER_SUBTLE)
         self.bar_container.grid(row=1, column=1, columnspan=2, sticky="nsew", padx=(6, 4), pady=(6, 10))
         self.bar_container.pack_propagate(False)
         
@@ -88,7 +88,7 @@ class AnalyticsView(ctk.CTkFrame):
         ctk.CTkLabel(self.kpi_tasks.content, text=f"{pending} pending | {completed} completed", font=Fonts.SMALL, text_color=Colors.TEXT_SECONDARY).pack(pady=(0, 10))
         
         # Render Progress KPI
-        ctk.CTkLabel(self.kpi_progress.content, text=f"{prog_val}%", font=("Segoe UI", 48, "bold"), text_color=Colors.ACCENT_GLOW).pack(expand=True, pady=(10, 0))
+        ctk.CTkLabel(self.kpi_progress.content, text=f"{prog_val}%", font=("Segoe UI", 48, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(expand=True, pady=(10, 0))
         ctk.CTkLabel(self.kpi_progress.content, text="Average Task Progress", font=Fonts.SMALL, text_color=Colors.TEXT_SECONDARY).pack(pady=(0, 10))
         
         # Render Events KPI
@@ -126,12 +126,12 @@ class AnalyticsView(ctk.CTkFrame):
         if not sizes:
             labels = ["No Tasks"]
             sizes = [1]
-            colors = [Colors.GLASS_FILL_LIGHT]
+            colors = [Colors.CARD_FLOATING]
             
         self.donut_fig, ax = plt.subplots(figsize=(4, 4), dpi=100)
-        self.donut_fig.patch.set_facecolor(Colors.GLASS_FILL)
+        self.donut_fig.patch.set_facecolor(Colors.CARD_BG)
         
-        wedges, texts = ax.pie(sizes, colors=colors, startangle=90, wedgeprops=dict(width=0.4, edgecolor=Colors.GLASS_FILL, linewidth=2))
+        wedges, texts = ax.pie(sizes, colors=colors, startangle=90, wedgeprops=dict(width=0.4, edgecolor=Colors.CARD_BG, linewidth=2))
         ax.axis('equal')
         
         # Title
@@ -172,13 +172,13 @@ class AnalyticsView(ctk.CTkFrame):
         e_data = [event_counts.get(d, 0) for d in days_str]
         
         self.bar_fig, ax = plt.subplots(figsize=(6, 4), dpi=100)
-        self.bar_fig.patch.set_facecolor(Colors.GLASS_FILL)
-        ax.set_facecolor(Colors.GLASS_FILL)
+        self.bar_fig.patch.set_facecolor(Colors.CARD_BG)
+        ax.set_facecolor(Colors.CARD_BG)
         
         x = range(len(labels))
         width = 0.35
         
-        ax.bar([i - width/2 for i in x], t_data, width, label='Tasks', color=Colors.ACCENT_GLOW)
+        ax.bar([i - width/2 for i in x], t_data, width, label='Tasks', color=Colors.ACCENT_PRIMARY)
         ax.bar([i + width/2 for i in x], e_data, width, label='Events', color=Colors.CHART_CYAN)
         
         # Styling
@@ -190,8 +190,8 @@ class AnalyticsView(ctk.CTkFrame):
         # Spines
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
-        ax.spines['left'].set_color(Colors.GLASS_BORDER_BRIGHT)
-        ax.spines['bottom'].set_color(Colors.GLASS_BORDER_BRIGHT)
+        ax.spines['left'].set_color(Colors.BORDER_HOVER)
+        ax.spines['bottom'].set_color(Colors.BORDER_HOVER)
         
         # Grid
         ax.yaxis.grid(True, linestyle='--', alpha=0.2, color=Colors.TEXT_MUTED)

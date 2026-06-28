@@ -18,10 +18,10 @@ class PlaceholderView(ctk.CTkFrame):
         # Glass container
         card = ctk.CTkFrame(
             self,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=20,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             width=500,
             height=280,
         )
@@ -68,7 +68,7 @@ class PlaceholderView(ctk.CTkFrame):
         # Subtle "Go Back" hint
         back_label = ctk.CTkLabel(
             inner, text="← Return to Dashboard",
-            font=Fonts.SMALL, text_color=Colors.ACCENT_GLOW,
+            font=Fonts.SMALL, text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent", cursor="hand2"
         )
         back_label.pack()

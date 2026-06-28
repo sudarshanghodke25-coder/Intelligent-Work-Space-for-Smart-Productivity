@@ -142,7 +142,7 @@ class AnimatedGlowButton(ctk.CTkFrame):
             self._start_pulse()
         else:
             self.stop_pulse()
-            self._btn_frame.configure(fg_color=Colors.GLASS_FILL_LIGHT)
+            self._btn_frame.configure(fg_color=Colors.CARD_FLOATING)
             for w in [self._btn_frame, self._text_lbl, self._icon_lbl]:
                 w.configure(cursor="arrow")
 
@@ -156,11 +156,11 @@ class HoverCard(ctk.CTkFrame):
     def __init__(
         self,
         parent,
-        fg_color: str = Colors.GLASS_FILL,
-        hover_color: str = Colors.GLASS_FILL_HOVER,
+        fg_color: str = Colors.CARD_BG,
+        hover_color: str = Colors.CARD_HOVER,
         corner_radius: int = 14,
         border_width: int = 1,
-        border_color: str = Colors.GLASS_BORDER,
+        border_color: str = Colors.BORDER_SUBTLE,
         on_click=None,
         **kwargs,
     ):
@@ -184,11 +184,11 @@ class HoverCard(ctk.CTkFrame):
 
     def _on_enter(self, _=None):
         self.configure(fg_color=self._hover_color,
-                       border_color=Colors.GLASS_BORDER_BRIGHT)
+                       border_color=Colors.BORDER_HOVER)
 
     def _on_leave(self, _=None):
         self.configure(fg_color=self._base_color,
-                       border_color=Colors.GLASS_BORDER)
+                       border_color=Colors.BORDER_SUBTLE)
 
     def _handle_click(self, _=None):
         if self._on_click:

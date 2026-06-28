@@ -25,10 +25,10 @@ class ReferenceUploader(ctk.CTkFrame):
             self,
             text="📁 Click to Browse, Drag & Drop, or Ctrl+V",
             font=Fonts.SMALL_BOLD,
-            fg_color=Colors.GLASS_FILL_LIGHT,
-            hover_color=Colors.GLASS_FILL_HOVER,
+            fg_color=Colors.CARD_FLOATING,
+            hover_color=Colors.CARD_HOVER,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             text_color=Colors.TEXT_SECONDARY,
             height=40,
             command=self._handle_browse
@@ -134,7 +134,7 @@ class ReferenceUploader(ctk.CTkFrame):
             self._create_thumbnail(path)
             
     def _create_thumbnail(self, path):
-        frame = ctk.CTkFrame(self.thumb_scroll, width=80, height=80, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=8)
+        frame = ctk.CTkFrame(self.thumb_scroll, width=80, height=80, fg_color=Colors.CARD_FLOATING, corner_radius=8)
         frame.pack(side="left", padx=5)
         frame.pack_propagate(False)
         

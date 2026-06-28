@@ -21,7 +21,7 @@ class HistoryCard(ctk.CTkFrame):
         self.bind("<Button-3>", self._show_context_menu)
         
         # Thumbnail
-        self.thumb_label = ctk.CTkLabel(self, text="", width=60, height=60, corner_radius=8, fg_color=Colors.GLASS_FILL_LIGHT)
+        self.thumb_label = ctk.CTkLabel(self, text="", width=60, height=60, corner_radius=8, fg_color=Colors.CARD_FLOATING)
         self.thumb_label.pack(side="left", padx=(0, 10))
         
         # Info
@@ -46,14 +46,18 @@ class HistoryCard(ctk.CTkFrame):
         self.meta_lbl.bind("<Button-3>", self._show_context_menu)
         
         # Quick Download Button
-        self.dl_btn = ctk.CTkButton(self, text="📥", width=30, height=30, font=Fonts.BODY, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, text_color=Colors.ACCENT_PRIMARY, command=self._handle_download)
+        self.dl_btn = ctk.CTkButton(self, text="📥", width=30, height=30, font=Fonts.BODY, fg_color="transparent", hover_color=Colors.CARD_HOVER, text_color=Colors.ACCENT_PRIMARY, command=self._handle_download)
         self.dl_btn.pack(side="right")
         
         # Load thumbnail safely
         self._load_thumbnail()
 
         # Context Menu
-        self.menu = tk.Menu(self, tearoff=0, bg=Colors.BG_SIDEBAR, fg=Colors.TEXT_PRIMARY, activebackground=Colors.ACCENT_PRIMARY)
+        bg_col = Colors.BG_SIDEBAR[1] if isinstance(Colors.BG_SIDEBAR, (tuple, list)) else Colors.BG_SIDEBAR
+        fg_col = Colors.TEXT_PRIMARY[1] if isinstance(Colors.TEXT_PRIMARY, (tuple, list)) else Colors.TEXT_PRIMARY
+        active_col = Colors.ACCENT_PRIMARY[1] if isinstance(Colors.ACCENT_PRIMARY, (tuple, list)) else Colors.ACCENT_PRIMARY
+        
+        self.menu = tk.Menu(self, tearoff=0, bg=bg_col, fg=fg_col, activebackground=active_col)
         self.menu.add_command(label="Load Prompts", command=self._handle_click)
         self.menu.add_command(label="Download", command=self._handle_download)
         self.menu.add_separator()
@@ -81,7 +85,7 @@ class HistoryCard(ctk.CTkFrame):
             self.thumb_label.configure(text="ERR")
 
     def _on_enter(self, event=None):
-        self.configure(fg_color=Colors.GLASS_FILL_LIGHT)
+        self.configure(fg_color=Colors.CARD_FLOATING)
 
     def _on_leave(self, event=None):
         self.configure(fg_color="transparent")

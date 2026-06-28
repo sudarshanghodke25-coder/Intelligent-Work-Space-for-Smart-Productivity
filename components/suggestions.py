@@ -53,9 +53,9 @@ class SuggestionsCard(ctk.CTkFrame):
 
         for i, sug in enumerate(self.suggestions):
             item = ctk.CTkFrame(
-                self.container, fg_color=Colors.GLASS_FILL_LIGHT,
+                self.container, fg_color=Colors.CARD_FLOATING,
                 corner_radius=12, border_width=1,
-                border_color=Colors.GLASS_BORDER
+                border_color=Colors.BORDER_SUBTLE
             )
             item.pack(fill="x", pady=4)
 

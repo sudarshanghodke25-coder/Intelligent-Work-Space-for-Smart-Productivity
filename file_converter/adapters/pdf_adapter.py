@@ -22,6 +22,14 @@ from file_converter.exceptions.converter_errors import (
 )
 
 
+import multiprocessing
+
+def _run_pdf2docx(source_path: str, out_path: str):
+    from pdf2docx import Converter
+    cv = Converter(source_path)
+    cv.convert(out_path)
+    cv.close()
+
 def _parse_page_range(page_range_str: str, total_pages: int) -> List[int]:
     """
     Parse a page range string like "1-3,5,7-9" into a sorted list of
@@ -62,7 +70,7 @@ class PDFAdapter(BaseAdapter):
         ".tiff", ".txt", ".md",
     ]
     supported_output_formats = [
-        ".pdf", ".png", ".jpg", ".jpeg", ".txt",
+        ".pdf", ".png", ".jpg", ".jpeg", ".txt", ".docx",
     ]
 
     def convert(self, job: ConversionJob) -> str:
@@ -78,6 +86,8 @@ class PDFAdapter(BaseAdapter):
                 return self._pdf_to_images(job)
             elif src_ext == ".pdf" and tgt_ext == ".txt":
                 return self._pdf_to_text(job)
+            elif src_ext == ".pdf" and tgt_ext == ".docx":
+                return self._pdf_to_docx(job)
             elif src_ext == ".pdf" and tgt_ext == ".pdf":
                 return self._pdf_process(job)
             elif src_ext in (".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff") \
@@ -134,6 +144,44 @@ class PDFAdapter(BaseAdapter):
         return str(out_dir)
 
     # ── PDF → Text ─────────────────────────────────────────────────────────
+
+    def _pdf_to_docx(self, job: ConversionJob) -> str:
+        try:
+            from pdf2docx import Converter
+        except ImportError:
+            raise ConversionFailureError("pdf2docx not installed.")
+            
+        self._check_cancelled(job)
+        job.report_progress(0.2, "Initializing converter…")
+        
+        try:
+            out_path = self._resolve_output_path(job)
+            
+            job.report_progress(0.5, "Converting pages to Word format…")
+            
+            # Run conversion in a separate process to allow immediate cancellation
+            import time
+            p = multiprocessing.Process(target=_run_pdf2docx, args=(job.source_path, str(out_path)))
+            p.start()
+            
+            while p.is_alive():
+                # Check for cancellation while waiting
+                if job.is_cancelled():
+                    p.terminate()
+                    p.join()
+                    raise JobCancelledError("Conversion was stopped.")
+                time.sleep(0.2)
+                
+            p.join()
+            if p.exitcode != 0:
+                raise ConversionFailureError(f"PDF to Word process failed with exit code {p.exitcode}")
+            
+            job.report_progress(1.0, "Done!")
+            return str(out_path)
+        except JobCancelledError:
+            raise
+        except Exception as exc:
+            raise ConversionFailureError(f"PDF to Word failed: {exc}", exc)
 
     def _pdf_to_text(self, job: ConversionJob) -> str:
         """Extract all text from PDF via PyMuPDF."""

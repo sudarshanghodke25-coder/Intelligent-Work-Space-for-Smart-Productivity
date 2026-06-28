@@ -36,15 +36,15 @@ class GoalTrackerView(ctk.CTkFrame):
         
         self.title_entry = ctk.CTkEntry(
             container, placeholder_text="Goal Title (e.g. Launch v1.0)",
-            font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG,
-            border_color=Colors.ENTRY_BORDER, height=Dims.ENTRY_HEIGHT, corner_radius=Dims.ENTRY_CORNER
+            font=Fonts.ENTRY, fg_color=Colors.INPUT_BG,
+            border_color=Colors.INPUT_BORDER, height=Dims.ENTRY_HEIGHT, corner_radius=Dims.ENTRY_CORNER
         )
         self.title_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
         
         self.date_entry = ctk.CTkEntry(
             container, placeholder_text="Target Date (YYYY-MM-DD)",
-            font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG,
-            border_color=Colors.ENTRY_BORDER, height=Dims.ENTRY_HEIGHT, corner_radius=Dims.ENTRY_CORNER,
+            font=Fonts.ENTRY, fg_color=Colors.INPUT_BG,
+            border_color=Colors.INPUT_BORDER, height=Dims.ENTRY_HEIGHT, corner_radius=Dims.ENTRY_CORNER,
             width=200
         )
         self.date_entry.pack(side="left", padx=(0, 10))
@@ -106,7 +106,7 @@ class GoalTrackerView(ctk.CTkFrame):
             self._create_goal_item(g)
             
     def _create_goal_item(self, goal):
-        item = ctk.CTkFrame(self.scroll, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=10, border_width=1, border_color=Colors.GLASS_BORDER)
+        item = ctk.CTkFrame(self.scroll, fg_color=Colors.CARD_FLOATING, corner_radius=10, border_width=1, border_color=Colors.BORDER_SUBTLE)
         item.pack(fill="x", pady=5)
         
         top = ctk.CTkFrame(item, fg_color="transparent")
@@ -119,15 +119,15 @@ class GoalTrackerView(ctk.CTkFrame):
         bot.pack(fill="x", padx=15, pady=(5, 15))
         
         progress = goal['progress']
-        color = Colors.SUCCESS if progress == 100 else Colors.ACCENT_GLOW
+        color = Colors.SUCCESS if progress == 100 else Colors.ACCENT_PRIMARY
         
-        bar = ctk.CTkProgressBar(bot, height=12, corner_radius=6, fg_color=Colors.GLASS_FILL, progress_color=color)
+        bar = ctk.CTkProgressBar(bot, height=12, corner_radius=6, fg_color=Colors.CARD_BG, progress_color=color)
         bar.pack(side="left", fill="x", expand=True, padx=(0, 15))
         bar.set(progress / 100.0)
         
         ctk.CTkLabel(bot, text=f"{progress}%", font=Fonts.BODY_BOLD, text_color=color, width=40).pack(side="left")
         
-        btn = ctk.CTkButton(bot, text="+10%", width=50, height=24, font=Fonts.SMALL, fg_color=Colors.GLASS_BORDER, hover_color=Colors.GLASS_BORDER_BRIGHT, command=lambda g=goal['id'], p=progress: self._update_progress(g, p))
+        btn = ctk.CTkButton(bot, text="+10%", width=50, height=24, font=Fonts.SMALL, fg_color=Colors.BORDER_SUBTLE, hover_color=Colors.BORDER_HOVER, command=lambda g=goal['id'], p=progress: self._update_progress(g, p))
         btn.pack(side="right", padx=(10, 0))
         
         del_btn = ctk.CTkButton(bot, text="🗑️", width=30, height=24, font=Fonts.SMALL, fg_color="transparent", hover_color=Colors.ERROR, text_color=Colors.TEXT_MUTED, border_width=0, command=lambda g=goal['id']: self._delete_goal(g))

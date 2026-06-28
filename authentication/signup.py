@@ -14,10 +14,10 @@ class SignupView(ctk.CTkFrame):
         # Wider glass card
         self.card = ctk.CTkFrame(
             self,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=20,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             width=550,  # Increased width for signup
             height=650, # Increased height
         )
@@ -33,7 +33,7 @@ class SignupView(ctk.CTkFrame):
     def _build_header(self):
         ctk.CTkLabel(
             self.inner, text="◆ AUREX",
-            font=("Segoe UI", 24, "bold"), text_color=Colors.ACCENT_GLOW,
+            font=("Segoe UI", 24, "bold"), text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent"
         ).pack(pady=(0, 5))
 
@@ -75,13 +75,13 @@ class SignupView(ctk.CTkFrame):
 
         login_btn = ctk.CTkLabel(
             self.form_frame, text="Already have an account? Login",
-            font=Fonts.SMALL, text_color=Colors.ACCENT_GLOW,
+            font=Fonts.SMALL, text_color=Colors.ACCENT_PRIMARY,
             cursor="hand2", fg_color="transparent"
         )
         login_btn.pack()
         login_btn.bind("<Button-1>", lambda e: self._on_navigate_login())
         login_btn.bind("<Enter>", lambda e: login_btn.configure(text_color=Colors.TEXT_PRIMARY))
-        login_btn.bind("<Leave>", lambda e: login_btn.configure(text_color=Colors.ACCENT_GLOW))
+        login_btn.bind("<Leave>", lambda e: login_btn.configure(text_color=Colors.ACCENT_PRIMARY))
 
     def _create_field(self, label, placeholder, show=None):
         ctk.CTkLabel(
@@ -95,8 +95,8 @@ class SignupView(ctk.CTkFrame):
             placeholder_text=placeholder,
             placeholder_text_color=Colors.TEXT_DIM,
             font=Fonts.ENTRY, text_color=Colors.TEXT_PRIMARY,
-            fg_color=Colors.ENTRY_BG,
-            border_width=1, border_color=Colors.ENTRY_BORDER,
+            fg_color=Colors.INPUT_BG,
+            border_width=1, border_color=Colors.INPUT_BORDER,
             corner_radius=Dims.ENTRY_CORNER,
             height=Dims.ENTRY_HEIGHT,
             show=show if show else ""

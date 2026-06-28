@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image
+import os
 from theme import Colors, Fonts
 
 # Try to load tkinterdnd2 for Drag and Drop support
@@ -13,7 +14,7 @@ except ImportError:
 
 class ImageCanvas(ctk.CTkFrame):
     def __init__(self, parent, on_image_dropped=None, **kwargs):
-        super().__init__(parent, fg_color=Colors.BG_DEEPSPACE, border_width=2, border_color=Colors.GLASS_BORDER, corner_radius=12, **kwargs)
+        super().__init__(parent, fg_color=Colors.BG_DEEPSPACE, border_width=2, border_color=Colors.BORDER_SUBTLE, corner_radius=12, **kwargs)
         
         self.on_image_dropped = on_image_dropped
         self.current_image_path = None

@@ -34,18 +34,18 @@ class HistoryEntryRow(ctk.CTkFrame):
         self._on_open = on_open
         self._build()
 
-        self.bind("<Enter>", lambda _: self.configure(fg_color=Colors.GLASS_FILL_HOVER))
+        self.bind("<Enter>", lambda _: self.configure(fg_color=Colors.CARD_HOVER))
         self.bind("<Leave>", lambda _: self.configure(fg_color="transparent"))
 
     def _build(self):
         # File type icon box
         fmt = get_format(self._entry.source_ext)
         icon = fmt.icon if fmt else "📁"
-        icon_box = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=6, width=32, height=32)
+        icon_box = ctk.CTkFrame(self, fg_color=Colors.CARD_FLOATING, corner_radius=6, width=32, height=32)
         icon_box.pack(side="left", padx=(4, 10), pady=8)
         icon_box.pack_propagate(False)
         ctk.CTkLabel(
-            icon_box, text=icon, font=("Segoe UI", 16), text_color=Colors.ACCENT_GLOW, fg_color="transparent"
+            icon_box, text=icon, font=("Segoe UI", 16), text_color=Colors.ACCENT_PRIMARY, fg_color="transparent"
         ).place(relx=0.5, rely=0.5, anchor="center")
 
         # Info block (Name + Conversion Arrow + Size)
@@ -84,8 +84,8 @@ class HistoryEntryRow(ctk.CTkFrame):
             if Path(self._entry.output_path).exists():
                 dl_btn = ctk.CTkButton(
                     right_frame, text="↓", font=("Segoe UI", 14), width=28, height=28, corner_radius=6,
-                    fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, text_color=Colors.TEXT_SECONDARY,
-                    border_width=1, border_color=Colors.GLASS_BORDER,
+                    fg_color="transparent", hover_color=Colors.CARD_HOVER, text_color=Colors.TEXT_SECONDARY,
+                    border_width=1, border_color=Colors.BORDER_SUBTLE,
                     command=lambda: self._on_open and self._on_open(self._entry.output_path)
                 )
                 dl_btn.pack(side="left")
@@ -99,6 +99,9 @@ class HistoryEntryRow(ctk.CTkFrame):
             ).pack(side="left", padx=(0, 10))
 
 
+from utils.ui_helpers import destroy_tracked
+
+
 class HistorySidebar(ctk.CTkFrame):
     """
     Sidebar showing recent conversion history and storage.
@@ -110,14 +113,17 @@ class HistorySidebar(ctk.CTkFrame):
         on_open_file: Callable[[str], None] = None,
         on_open_folder: Callable[[str], None] = None,
         on_delete_entry: Callable[[int], None] = None,
+        on_clear_all: Callable[[], None] = None,
         on_refresh: Callable[[str, str], List[HistoryEntry]] = None,
         on_get_stats: Callable[[], ConverterStats] = None,
         **kwargs,
     ):
         super().__init__(parent, fg_color="transparent", **kwargs)
         self._on_open_file = on_open_file
+        self._on_clear_all = on_clear_all
         self._on_refresh = on_refresh
         self._on_get_stats = on_get_stats
+        self._history_widgets = []
 
         self._build()
         self._subscribe()
@@ -134,73 +140,44 @@ class HistorySidebar(ctk.CTkFrame):
         ).pack(side="left")
         
         ctk.CTkButton(
-            header, text="Clear All", font=Fonts.CAPTION, text_color=Colors.ACCENT_GLOW,
-            fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, width=50, height=20, corner_radius=4, command=lambda: None
+            header, text="Clear All", font=Fonts.CAPTION, text_color=Colors.ACCENT_PRIMARY,
+            fg_color="transparent", hover_color=Colors.CARD_HOVER, width=50, height=20, corner_radius=4, command=self._on_clear_all_click
         ).pack(side="right")
 
         # ── Scrollable List ──────────────────────────────────────────────
         self._history_list = ctk.CTkScrollableFrame(
-            self, fg_color=Colors.GLASS_FILL, corner_radius=12, border_width=1, border_color=Colors.GLASS_BORDER,
-            scrollbar_button_color=Colors.GLASS_FILL_LIGHT,
+            self, fg_color=Colors.CARD_BG, corner_radius=12, border_width=1, border_color=Colors.BORDER_SUBTLE,
+            scrollbar_button_color=Colors.CARD_FLOATING,
         )
         self._history_list.pack(fill="both", expand=True, pady=(0, 20))
-
-        # ── Storage Used Section ──────────────────────────────────────────
-        storage_frame = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=12, border_width=1, border_color=Colors.GLASS_BORDER, height=90)
-        storage_frame.pack(fill="x", side="bottom")
-        storage_frame.pack_propagate(False)
-        
-        inner = ctk.CTkFrame(storage_frame, fg_color="transparent")
-        inner.pack(fill="both", expand=True, padx=16, pady=16)
-
-        ctk.CTkLabel(inner, text="Storage Used", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY, anchor="w", fg_color="transparent").pack(fill="x")
-        self._storage_lbl = ctk.CTkLabel(inner, text="0 GB / 10 GB", font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED, anchor="w", fg_color="transparent")
-        self._storage_lbl.pack(fill="x", pady=(0, 8))
-
-        bar_row = ctk.CTkFrame(inner, fg_color="transparent")
-        bar_row.pack(fill="x")
-        
-        self._storage_bar = ctk.CTkProgressBar(bar_row, height=6, corner_radius=3, fg_color=Colors.GLASS_FILL_LIGHT, progress_color=Colors.ACCENT_GLOW)
-        self._storage_bar.set(0)
-        self._storage_bar.pack(side="left", fill="x", expand=True, pady=4)
-        
-        ctk.CTkLabel(bar_row, text="Manage Storage →", font=("Segoe UI", 10), text_color=Colors.ACCENT_GLOW, fg_color="transparent").pack(side="right", padx=(10, 0))
 
 
     def _subscribe(self):
         bus.subscribe(ConverterEvents.HISTORY_UPDATED, lambda _: self._load_history())
+
+    def _on_clear_all_click(self):
+        if self._on_clear_all:
+            self._on_clear_all()
 
     def _load_history(self):
         entries: List[HistoryEntry] = []
         if self._on_refresh:
             entries = self._on_refresh("All", "")
 
-        for w in self._history_list.winfo_children():
-            w.destroy()
+        destroy_tracked(self._history_widgets)
 
         if not entries:
-            ctk.CTkLabel(
+            lbl = ctk.CTkLabel(
                 self._history_list, text="No conversions yet.", font=Fonts.SMALL, text_color=Colors.TEXT_DIM, fg_color="transparent"
-            ).pack(pady=20)
+            )
+            lbl.pack(pady=20)
+            self._history_widgets.append(lbl)
         else:
-            for i, entry in enumerate(entries[:10]):  # Show last 10
+            for i, entry in enumerate(entries[:10]):
                 row = HistoryEntryRow(self._history_list, entry=entry, on_open=self._on_open_file)
                 row.pack(fill="x")
+                self._history_widgets.append(row)
                 if i < len(entries[:10]) - 1:
-                    ctk.CTkFrame(self._history_list, fg_color=Colors.GLASS_BORDER, height=1).pack(fill="x", padx=10)
-
-        self._load_stats()
-
-    def _load_stats(self):
-        if not self._on_get_stats:
-            return
-        stats = self._on_get_stats()
-        
-        # Fake a 10 GB limit for visual parity with image
-        used_bytes = stats.total_bytes_processed
-        used_gb = used_bytes / (1024**3)
-        limit_gb = 10.0
-        fraction = min(used_gb / limit_gb, 1.0)
-        
-        self._storage_lbl.configure(text=f"{used_gb:.2f} GB / {int(limit_gb)} GB")
-        self._storage_bar.set(fraction)
+                    sep = ctk.CTkFrame(self._history_list, fg_color=Colors.BORDER_SUBTLE, height=1)
+                    sep.pack(fill="x", padx=10)
+                    self._history_widgets.append(sep)

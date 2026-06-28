@@ -22,10 +22,10 @@ class GlassCard(ctk.CTkFrame):
     ):
         super().__init__(
             parent,
-            fg_color=Colors.GLASS_FILL,
-            corner_radius=Dims.CARD_CORNER,
+            fg_color=Colors.CARD_BG,
+            corner_radius=Dims.RADIUS_CARD,
             border_width=Dims.CARD_BORDER,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             **kwargs
         )
 
@@ -52,7 +52,7 @@ class GlassCard(ctk.CTkFrame):
                     header,
                     text=action_text,
                     font=Fonts.SMALL,
-                    text_color=Colors.ACCENT_GLOW,
+                    text_color=Colors.ACCENT_PRIMARY,
                     cursor="hand2",
                     anchor="e"
                 )

@@ -124,7 +124,6 @@ class KnowledgePipeline:
             # --- HARD FAIL VALIDATIONS ---
             print("================= TRACE LOGS =================")
             print(f"[DEBUG] Transcript Length: {transcript_length}")
-            print(f"[DEBUG] Transcript Preview: {raw_text[:300]}")
             
             if transcript_length < 100:
                 raise Exception("HARD FAIL: Insufficient transcript data (<100 chars). Aborting analysis.")
@@ -182,37 +181,23 @@ class KnowledgePipeline:
                 return
             # -----------------------------
 
-            # 3. Chunk Content & Generate Embeddings
+            # 3. Prepare chunks for AI analysis (embeddings deferred until after UI update)
             current_stage = "CHUNKING"
-            bus.publish("ANALYSIS_PROGRESS", {"source_id": source_id, "status": "Chunking & Generating Embeddings...", "progress": 40})
+            bus.publish("ANALYSIS_PROGRESS", {"source_id": source_id, "status": "Preparing content...", "progress": 40})
             words = raw_text.split()
             
-            if len(words) < 2000:
+            if len(words) > 25000:
+                print(f"[DEBUG] Document is massive ({len(words)} words). Truncating to 25000 words to prevent API hangs.")
+                words = words[:25000]
+                raw_text = " ".join(words)
+            
+            if len(words) <= 8000:
                 raw_chunks = [raw_text]
-                print(f"[DEBUG] Document is small ({len(words)} words). Processing as single chunk.")
             else:
-                chunk_size = 2000
+                chunk_size = 8000
                 raw_chunks = [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
             
             print(f"[DEBUG] Chunk Count: {len(raw_chunks)}")
-            
-            t_emb_start = time.time()
-            bus.publish("ANALYSIS_PROGRESS", {"source_id": source_id, "status": "Generating Embeddings...", "progress": 45})
-            emb_batch = embedding_service.generate_embeddings_batch(raw_chunks)
-            emb_elapsed = time.time() - t_emb_start
-            print(f"[PERF] Embeddings: {emb_elapsed:.2f}s")
-            
-            embedded_chunks = []
-            for idx, c_text in enumerate(raw_chunks):
-                emb = emb_batch[idx] if idx < len(emb_batch) else []
-                embedded_chunks.append({
-                    "text": c_text,
-                    "embedding_json": json.dumps(emb) if emb else None
-                })
-                
-            # Save chunks to DB
-            knowledge_service.save_chunks(source_id, embedded_chunks)
-            chunks = raw_chunks # Pass strings to Groq
 
             # 4. Groq/API Analysis (Map-Reduce)
             current_stage = "API_ANALYSIS"
@@ -239,6 +224,8 @@ Return EXACTLY this schema:
   "quotes": ["Important Quote 1"]
 }"""
 
+            chunks = raw_chunks
+
             import concurrent.futures
 
             def process_chunk(idx, chunk):
@@ -250,7 +237,9 @@ Return EXACTLY this schema:
                         messages=[
                             {"role": "system", "content": system_prompt},
                             {"role": "user", "content": f"DOCUMENT CONTENT:\n{chunk}"}
-                        ]
+                        ],
+                        max_tokens=1200,
+                        temperature=0.3,
                     )
                     return idx, completion.choices[0].message.content
                 except Exception as e:
@@ -258,7 +247,8 @@ Return EXACTLY this schema:
                     return idx, None
 
             chunk_summaries = [None] * len(chunks)
-            with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            max_workers = min(8, max(1, len(chunks)))
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {executor.submit(process_chunk, i, chunk): i for i, chunk in enumerate(chunks)}
                 completed_count = 0
                 for future in concurrent.futures.as_completed(futures):
@@ -347,25 +337,36 @@ Return EXACTLY this schema:
                 "content_hash": content_hash
             }
             
-            t_db = time.time()
-            current_stage = "DATABASE"
-            print("[STEP] Before ANALYSIS_PROGRESS (Saving Results) publish")
-            bus.publish("ANALYSIS_PROGRESS", {"source_id": source_id, "status": "Saving Results...", "progress": 95})
-            print("[STEP] After ANALYSIS_PROGRESS publish")
-            
             print("[STEP] Before database save (update_source_metadata)")
             knowledge_service.update_source_metadata(source_id, update_data)
+
+            text_chunks = [{"text": c, "embedding_json": None} for c in raw_chunks]
+            knowledge_service.save_chunks(source_id, text_chunks)
             print("[STEP] After database save")
             
-            # 6. UI Refresh
+            # 6. UI Refresh (embeddings deferred — summary visible immediately)
             current_stage = "UI"
-            print("[STEP] Before ANALYSIS_PROGRESS (Completed) publish")
             bus.publish("ANALYSIS_PROGRESS", {"source_id": source_id, "status": "Completed", "progress": 100})
-            print("[STEP] After ANALYSIS_PROGRESS (Completed) publish")
-            
-            print("[STEP] Before ANALYSIS_COMPLETED publish")
             bus.publish("ANALYSIS_COMPLETED", {"source_id": source_id, "success": True})
-            print("[STEP] After ANALYSIS_COMPLETED publish -- pipeline thread finished cleanly")
+            bus.publish("SUMMARY_GENERATED", {"source_id": source_id})
+
+            def _embed_later():
+                try:
+                    short_chunks = [c[:1000] for c in raw_chunks]
+                    emb_batch = embedding_service.generate_embeddings_batch(short_chunks)
+                    embedded = []
+                    for idx, c_text in enumerate(raw_chunks):
+                        emb = emb_batch[idx] if idx < len(emb_batch) else []
+                        embedded.append({
+                            "text": c_text,
+                            "embedding_json": json.dumps(emb) if emb else None,
+                        })
+                    knowledge_service.save_chunks(source_id, embedded)
+                    print(f"[PERF] Background embeddings saved for source {source_id}")
+                except Exception as exc:
+                    print(f"[Embedding] Background defer failed: {exc}")
+
+            threading.Thread(target=_embed_later, daemon=True).start()
 
         except Exception as e:
             err_msg = f"Stage:\n{current_stage}\n\n{str(e)}"

@@ -3,7 +3,7 @@ from theme import Colors, Fonts
 
 class StatsCard(ctk.CTkFrame):
     def __init__(self, parent, title, value, **kwargs):
-        super().__init__(parent, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=12, border_width=1, border_color=Colors.GLASS_BORDER, **kwargs)
+        super().__init__(parent, fg_color=Colors.CARD_FLOATING, corner_radius=12, border_width=1, border_color=Colors.BORDER_SUBTLE, **kwargs)
         
         self.pack_propagate(False)
         

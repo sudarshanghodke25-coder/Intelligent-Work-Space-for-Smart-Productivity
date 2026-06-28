@@ -182,6 +182,14 @@ def delete_history_entry(entry_id: int) -> None:
     conn.close()
 
 
+def clear_history(user_id: int = 1) -> None:
+    """Hard-delete all history rows for a user."""
+    conn = get_connection()
+    conn.execute("DELETE FROM converter_history WHERE user_id = ?", (user_id,))
+    conn.commit()
+    conn.close()
+
+
 def get_stats(user_id: int) -> ConverterStats:
     """Compute aggregated stats for the right sidebar."""
     conn = get_connection()

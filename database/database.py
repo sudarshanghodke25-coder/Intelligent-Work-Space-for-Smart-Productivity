@@ -29,6 +29,16 @@ def init_db():
         )
     ''')
 
+    # Safe migration for Users new columns (dob, age)
+    for col, ctype in [
+        ("dob", "TEXT"),
+        ("age", "INTEGER")
+    ]:
+        try:
+            cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {ctype}")
+        except sqlite3.OperationalError:
+            pass
+
     # Activities Table (History Service)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS activities (

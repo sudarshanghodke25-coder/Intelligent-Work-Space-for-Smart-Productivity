@@ -94,14 +94,15 @@ class AurexAPIClient:
             print(f"KEY ENDS WITH: '{raw_key[-5:] if len(raw_key) > 5 else ''}'")
         print("----------------------------------------\n")
 
-    def chat_completions_create(self, messages, model=None, response_format=None, temperature=0.7):
+    def chat_completions_create(self, messages, model=None, response_format=None, temperature=0.7, max_tokens=1024):
         if not self.client:
             raise ValueError(f"AI Client not initialized properly. Check diagnostics.")
             
         kwargs = {
             "model": model or self.model,
             "messages": messages,
-            "temperature": temperature
+            "temperature": temperature,
+            "max_tokens": max_tokens,
         }
         
         if response_format:

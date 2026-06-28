@@ -8,12 +8,12 @@ class TaskDetailPanel(ctk.CTkFrame):
         
         self.tabview = ctk.CTkTabview(
             self, 
-            fg_color=Colors.GLASS_FILL_LIGHT, 
-            segmented_button_fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_FLOATING, 
+            segmented_button_fg_color=Colors.CARD_BG,
             segmented_button_selected_color=Colors.ACCENT_PRIMARY,
             segmented_button_selected_hover_color=Colors.ACCENT_HOVER,
             segmented_button_unselected_color="transparent",
-            segmented_button_unselected_hover_color=Colors.GLASS_FILL_HOVER,
+            segmented_button_unselected_hover_color=Colors.CARD_HOVER,
             text_color=Colors.TEXT_PRIMARY
         )
         self.tabview.pack(fill="both", expand=True)

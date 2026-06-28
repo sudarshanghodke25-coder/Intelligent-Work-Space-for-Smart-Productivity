@@ -6,8 +6,32 @@ Uses Pillow to generate a cosmic background image at runtime.
 import random
 import math
 import threading
+import os
 from PIL import Image, ImageDraw, ImageFilter
 import customtkinter as ctk
+
+# Mapping page views to their respective custom space backgrounds
+PAGE_BACKGROUNDS = {
+    "Dashboard": "bg_dashboard.png",
+    "Aurex AI": "bg_aurex_ai.png",
+    "AI Planner": "bg_ai_planner.png",
+    "Task Manager": "bg_task_manager.png",
+    "Summarizer": "bg_notes_docs.png",
+    "Notes & Docs": "bg_notes_docs.png",
+    "Calendar": "bg_calendar.png",
+    "Analytics": "bg_analytics.png",
+    "History": "bg_history.png",
+    "Image Studio": "bg_calendar.png",
+    "File Converter": "bg_analytics.png",
+    "Focus Mode": "bg_focus_mode.png",
+    "Pomodoro Timer": "bg_focus_mode.png",
+    "Goal Tracker": "bg_goal_tracker.png",
+    "Habit Tracker": "bg_goal_tracker.png",
+    "Settings": "bg_settings.png",
+    "Accounts": "bg_settings.png",
+    "auth": "bg_settings.png"
+}
+
 
 
 def _lerp_color(c1: tuple, c2: tuple, t: float) -> tuple:
@@ -29,26 +53,31 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
     draw = ImageDraw.Draw(img)
 
     # ── Layer 1: Base gradient ──────────────────────────────────────────
-    top_color = (12, 10, 32)
-    mid_color = (10, 8, 28)
-    bot_color = (6, 6, 18)
+    top_color = (16, 25, 45)
+    mid_color = (12, 21, 38)
+    bot_color = (8, 17, 32)
 
-    for y in range(height):
-        t = y / max(height - 1, 1)
+    # Render gradient at reduced height, then scale — much faster than per-pixel at full res
+    grad_h = min(height, 256)
+    grad = Image.new("RGB", (1, grad_h))
+    grad_draw = ImageDraw.Draw(grad)
+    for y in range(grad_h):
+        t = y / max(grad_h - 1, 1)
         if t < 0.5:
             c = _lerp_color(top_color, mid_color, t * 2)
         else:
             c = _lerp_color(mid_color, bot_color, (t - 0.5) * 2)
-        draw.line([(0, y), (width, y)], fill=c)
+        grad_draw.point((0, y), fill=c)
+    img = grad.resize((width, height), Image.Resampling.BILINEAR)
+    draw = ImageDraw.Draw(img)
 
     # ── Layer 2: Nebula glow blobs ──────────────────────────────────────
     nebula_colors = [
-        (80, 20, 120),    # cosmic purple
-        (20, 30, 100),    # deep blue
-        (100, 40, 15),    # muted orange
-        (30, 50, 110),    # blue-teal
-        (90, 15, 70),     # magenta
-        (15, 40, 90),     # navy
+        (139, 92, 246),    # electric purple
+        (6, 182, 212),     # cyan
+        (244, 63, 94),     # hot pink
+        (109, 59, 215),    # deep purple
+        (3, 181, 211),     # teal cyan
     ]
 
     # Create a separate layer for nebula blobs
@@ -84,7 +113,7 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
         cx = rng.randint(0, width)
         cy = rng.randint(0, height)
         r = rng.randint(int(min(width, height) * 0.05), int(min(width, height) * 0.15))
-        color = rng.choice([(60, 30, 90), (30, 40, 80), (70, 25, 10)])
+        color = rng.choice([(139, 92, 246), (6, 182, 212), (244, 63, 94)])
         color = tuple(c // 2 for c in color)
         glow_draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color)
 
@@ -116,7 +145,7 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
 
 
 class NebulaBackground:
-    """Manages a responsive nebula background for a CTk window."""
+    """Manages a responsive deep-space background with dynamic image cross-fading."""
 
     def __init__(self, parent: ctk.CTk):
         self.parent = parent
@@ -124,6 +153,12 @@ class NebulaBackground:
         self._current_size = (0, 0)
         self._resize_after_id = None
         self._seed = random.randint(1, 99999)
+        self.current_page = "Dashboard"
+        self.current_pil_image = None
+        self._transition_id = 0
+
+        # Build absolute path to backgrounds
+        self.bg_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "backgrounds")
 
     def setup(self, container=None):
         """Create the background label and bind resize."""
@@ -136,10 +171,19 @@ class NebulaBackground:
         self.parent.update_idletasks()
         w = max(self.parent.winfo_width(), 800)
         h = max(self.parent.winfo_height(), 600)
-        self._render(w, h)
+        self.parent.after(100, lambda: self._render(w, h))
 
         # Bind resize with debounce
         self.parent.bind("<Configure>", self._on_resize)
+
+    def set_page_background(self, page_name: str):
+        """Transition the background to the theme of the new page."""
+        if page_name == self.current_page and self.current_pil_image is not None:
+            return
+        self.current_page = page_name
+        w = max(self.parent.winfo_width(), 100)
+        h = max(self.parent.winfo_height(), 100)
+        self._render(w, h, force_transition=True)
 
     def _on_resize(self, event):
         """Debounced resize handler — regenerates background."""
@@ -147,33 +191,104 @@ class NebulaBackground:
             return
         if self._resize_after_id:
             self.parent.after_cancel(self._resize_after_id)
-        self._resize_after_id = self.parent.after(500, self._do_resize)
+        self._resize_after_id = self.parent.after(300, self._do_resize)
 
     def _do_resize(self):
-        """Actually regenerate the background on resize."""
+        """Actually regenerate/resize the background on resize."""
         w = self.parent.winfo_width()
         h = self.parent.winfo_height()
         if (w, h) != self._current_size and w > 100 and h > 100:
             self._render(w, h)
 
-    def _render(self, w: int, h: int):
-        """Generate and apply the background image in a separate thread."""
+    def _load_page_image(self, page_name: str, target_w: int, target_h: int) -> Image.Image:
+        """Load the universal main background image and resize it, or fallback."""
+        filepath = os.path.join(self.bg_dir, "main_bg.jpg")
+
+        if os.path.exists(filepath):
+            try:
+                img = Image.open(filepath)
+                # Ensure it's RGB
+                if img.mode != "RGB":
+                    img = img.convert("RGB")
+                return img.resize((target_w, target_h), Image.Resampling.LANCZOS)
+            except Exception as e:
+                print(f"Error loading background image {filepath}: {e}")
+
+        # Fallback to procedural generation
+        return generate_nebula_background(target_w, target_h, seed=self._seed)
+
+    def _render(self, w: int, h: int, force_transition: bool = False):
+        """Load and apply the page background with cross-fade transition."""
         self._current_size = (w, h)
-        
-        def _generate_and_apply():
-            img = generate_nebula_background(w, h, seed=self._seed)
-            ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(w, h))
+        render_w = min(w, 1280)
+        render_h = min(h, 720)
+
+        # Increment transition ID to cancel previous animations
+        self._transition_id += 1
+        tid = self._transition_id
+
+        def _load_and_animate():
+            new_img = self._load_page_image(self.current_page, render_w, render_h)
             
-            def _apply():
-                if self._bg_label:
-                    self._bg_label.configure(image=ctk_img)
-                    self._bg_label._ctk_image = ctk_img  # prevent GC
-            
-            # Schedule UI update on main thread
+            def _start_animation():
+                if tid != self._transition_id:
+                    return
+                
+                # If there's no current image or we are not forcing transition, just set it
+                if self.current_pil_image is None or not force_transition:
+                    self.current_pil_image = new_img
+                    self._apply_image(new_img, w, h)
+                    return
+
+                # Animate cross-fade
+                steps = 12
+                duration_ms = 600
+                step_ms = duration_ms // steps
+                start_img = self.current_pil_image.copy()
+
+                def _animate_step(step=0):
+                    if tid != self._transition_id:
+                        return
+                    if step > steps:
+                        self.current_pil_image = new_img
+                        self._apply_image(new_img, w, h)
+                        return
+                    
+                    alpha = step / steps
+                    # Ease In-Out: 3t^2 - 2t^3
+                    t = alpha * alpha * (3 - 2 * alpha)
+                    
+                    try:
+                        blended = Image.blend(start_img, new_img, t)
+                        self._apply_image(blended, w, h)
+                    except Exception as e:
+                        # Fallback in case of blend error
+                        self.current_pil_image = new_img
+                        self._apply_image(new_img, w, h)
+                        return
+                        
+                    self.parent.after(step_ms, lambda: _animate_step(step + 1))
+
+                _animate_step(0)
+
+            # Schedule animation start on main thread
             if hasattr(self.parent, "after"):
-                self.parent.after(0, _apply)
-        
-        threading.Thread(target=_generate_and_apply, daemon=True).start()
+                self.parent.after(0, _start_animation)
+
+        threading.Thread(target=_load_and_animate, daemon=True).start()
+
+    def _apply_image(self, pil_img: Image.Image, w: int, h: int):
+        """Convert PIL image to CTkImage and apply to the background label."""
+        if (pil_img.width, pil_img.height) != (w, h):
+            # Scale to final window dimensions
+            display_img = pil_img.resize((w, h), Image.Resampling.BILINEAR)
+        else:
+            display_img = pil_img
+
+        ctk_img = ctk.CTkImage(light_image=display_img, dark_image=display_img, size=(w, h))
+        if self._bg_label:
+            self._bg_label.configure(image=ctk_img)
+            self._bg_label._ctk_image = ctk_img  # prevent GC
 
     @property
     def label(self):

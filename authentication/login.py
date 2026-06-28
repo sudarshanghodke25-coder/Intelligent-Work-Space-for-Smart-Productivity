@@ -14,10 +14,10 @@ class LoginView(ctk.CTkFrame):
         # Wider glass card
         self.card = ctk.CTkFrame(
             self,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=20,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             width=500,  # Increased width
             height=550,
         )
@@ -33,7 +33,7 @@ class LoginView(ctk.CTkFrame):
     def _build_header(self):
         ctk.CTkLabel(
             self.inner, text="◆",
-            font=("Segoe UI", 36, "bold"), text_color=Colors.ACCENT_GLOW,
+            font=("Segoe UI", 36, "bold"), text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent"
         ).pack(pady=(0, 5))
 
@@ -70,8 +70,8 @@ class LoginView(ctk.CTkFrame):
             placeholder_text="Enter your email",
             placeholder_text_color=Colors.TEXT_DIM,
             font=Fonts.ENTRY, text_color=Colors.TEXT_PRIMARY,
-            fg_color=Colors.ENTRY_BG,
-            border_width=1, border_color=Colors.ENTRY_BORDER,
+            fg_color=Colors.INPUT_BG,
+            border_width=1, border_color=Colors.INPUT_BORDER,
             corner_radius=Dims.ENTRY_CORNER,
             height=Dims.ENTRY_HEIGHT
         )
@@ -88,8 +88,8 @@ class LoginView(ctk.CTkFrame):
             placeholder_text="Enter your password",
             placeholder_text_color=Colors.TEXT_DIM,
             font=Fonts.ENTRY, text_color=Colors.TEXT_PRIMARY,
-            fg_color=Colors.ENTRY_BG,
-            border_width=1, border_color=Colors.ENTRY_BORDER,
+            fg_color=Colors.INPUT_BG,
+            border_width=1, border_color=Colors.INPUT_BORDER,
             corner_radius=Dims.ENTRY_CORNER,
             height=Dims.ENTRY_HEIGHT,
             show="•"
@@ -131,13 +131,13 @@ class LoginView(ctk.CTkFrame):
 
         create_btn = ctk.CTkLabel(
             links_frame, text="Create Account",
-            font=Fonts.SMALL, text_color=Colors.ACCENT_GLOW,
+            font=Fonts.SMALL, text_color=Colors.ACCENT_PRIMARY,
             cursor="hand2", fg_color="transparent"
         )
         create_btn.pack(side="right")
         create_btn.bind("<Button-1>", lambda e: self._on_navigate_signup())
         create_btn.bind("<Enter>", lambda e: create_btn.configure(text_color=Colors.TEXT_PRIMARY))
-        create_btn.bind("<Leave>", lambda e: create_btn.configure(text_color=Colors.ACCENT_GLOW))
+        create_btn.bind("<Leave>", lambda e: create_btn.configure(text_color=Colors.ACCENT_PRIMARY))
 
     def _handle_login(self):
         email = self.email_entry.get().strip()

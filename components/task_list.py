@@ -52,7 +52,7 @@ class TaskList(ctk.CTkFrame):
     def _build(self):
         for task in self.tasks:
             row = ctk.CTkFrame(
-                self.container, fg_color=Colors.GLASS_FILL_LIGHT if not task["done"] else "transparent",
+                self.container, fg_color=Colors.CARD_FLOATING if not task["done"] else "transparent",
                 corner_radius=10, height=42
             )
             row.pack(fill="x", pady=3)
@@ -60,7 +60,7 @@ class TaskList(ctk.CTkFrame):
 
             # Checkbox circle
             check_color = Colors.ACCENT_PRIMARY if task["done"] else "transparent"
-            check_border = Colors.ACCENT_PRIMARY if task["done"] else Colors.GLASS_BORDER_BRIGHT
+            check_border = Colors.ACCENT_PRIMARY if task["done"] else Colors.BORDER_HOVER
             check = ctk.CTkFrame(
                 row, width=18, height=18, corner_radius=9,
                 fg_color=check_color, border_width=2, border_color=check_border

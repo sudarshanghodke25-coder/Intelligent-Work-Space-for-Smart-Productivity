@@ -55,6 +55,9 @@ class NotesDocsView(ctk.CTkFrame):
         
         self._load_sources()
 
+    def on_show(self):
+        self._schedule_refresh()
+
     # ==========================================
     # CENTER PANEL
     # ==========================================
@@ -64,7 +67,7 @@ class NotesDocsView(ctk.CTkFrame):
         top_bar.pack(fill="x", pady=(0, 10))
         
         # 1. Document Analyzer
-        doc_frame = ctk.CTkFrame(top_bar, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=8, border_width=1, border_color=Colors.GLASS_BORDER)
+        doc_frame = ctk.CTkFrame(top_bar, fg_color=Colors.CARD_FLOATING, corner_radius=8, border_width=1, border_color=Colors.BORDER_SUBTLE)
         doc_frame.pack(fill="x", pady=(0, 5))
         
         ctk.CTkLabel(doc_frame, text="Document Analyzer", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY).pack(side="left", padx=10, pady=10)
@@ -78,19 +81,12 @@ class NotesDocsView(ctk.CTkFrame):
         ctk.CTkButton(doc_frame, text="Analyze Document", font=Fonts.BUTTON, width=120, fg_color=Colors.ACCENT_PRIMARY, command=self._analyze_document).pack(side="right", padx=(5, 10))
         
         # 2. URL Analyzer
-        url_frame = ctk.CTkFrame(top_bar, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=8, border_width=1, border_color=Colors.GLASS_BORDER)
+        url_frame = ctk.CTkFrame(top_bar, fg_color=Colors.CARD_FLOATING, corner_radius=8, border_width=1, border_color=Colors.BORDER_SUBTLE)
         url_frame.pack(fill="x", pady=(5, 10))
         
         ctk.CTkLabel(url_frame, text="URL Analyzer", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY).pack(side="left", padx=10, pady=10)
         
-        self.url_type_combo = ctk.CTkOptionMenu(
-            url_frame, values=["Website", "YouTube"],
-            width=100, font=Fonts.BUTTON, fg_color=blend_color(Colors.ACCENT_PRIMARY, 0.4), button_color=Colors.ACCENT_PRIMARY
-        )
-        self.url_type_combo.set("Website")
-        self.url_type_combo.pack(side="left", padx=5)
-        
-        self.url_input = ctk.CTkEntry(url_frame, placeholder_text="Enter URL...", font=Fonts.ENTRY, height=Dims.ENTRY_HEIGHT, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER)
+        self.url_input = ctk.CTkEntry(url_frame, placeholder_text="Enter URL...", font=Fonts.ENTRY, height=Dims.ENTRY_HEIGHT, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER)
         self.url_input.pack(side="left", fill="x", expand=True, padx=5)
         
         ctk.CTkButton(url_frame, text="Analyze URL", font=Fonts.BUTTON, width=100, fg_color=Colors.ACCENT_PRIMARY, command=self._analyze_url).pack(side="right", padx=(5, 10))
@@ -99,13 +95,13 @@ class NotesDocsView(ctk.CTkFrame):
         filter_row = ctk.CTkFrame(top_bar, fg_color="transparent")
         filter_row.pack(fill="x", pady=(10, 0))
         
-        self.search_entry = ctk.CTkEntry(filter_row, placeholder_text="Search Sources...", font=Fonts.ENTRY, height=Dims.ENTRY_HEIGHT, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER)
+        self.search_entry = ctk.CTkEntry(filter_row, placeholder_text="Search Sources...", font=Fonts.ENTRY, height=Dims.ENTRY_HEIGHT, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER)
         self.search_entry.pack(side="left", fill="x", expand=True, padx=(0, 10))
         self.search_entry.bind("<KeyRelease>", self._on_search_keyrelease)
         
         self.type_filter_btn = ctk.CTkOptionMenu(
             filter_row, values=["All Sources", "Documents", "Websites", "YouTube", "Notes"],
-            font=Fonts.BUTTON, fg_color=Colors.GLASS_FILL_LIGHT, button_color=Colors.GLASS_FILL_HOVER,
+            font=Fonts.BUTTON, fg_color=Colors.CARD_FLOATING, button_color=Colors.CARD_HOVER,
             command=self._handle_type_filter
         )
         self.type_filter_btn.set("Source Type ▼")
@@ -124,7 +120,7 @@ class NotesDocsView(ctk.CTkFrame):
         self.btn_delete_selected = ctk.CTkButton(hist_row, text="Delete Selected", font=Fonts.SMALL, width=110, fg_color=Colors.ERROR, hover_color=blend_color(Colors.ERROR, 0.6), command=self._action_delete_selected)
         self.btn_delete_selected.pack(side="right", padx=5)
         
-        self.btn_select_all = ctk.CTkButton(hist_row, text="Select All", font=Fonts.SMALL, width=70, fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER, command=self._action_select_all)
+        self.btn_select_all = ctk.CTkButton(hist_row, text="Select All", font=Fonts.SMALL, width=70, fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER, command=self._action_select_all)
         self.btn_select_all.pack(side="right", padx=5)
         
         # Source List Area
@@ -190,11 +186,11 @@ class NotesDocsView(ctk.CTkFrame):
         val = self.url_input.get().strip()
         if not val: return
         
-        source_type = self.url_type_combo.get().lower()
+        source_type = "website"
         print(f"[UI ACTION] Analyze URL button fired. Type: {source_type}, URL: {val}")
         self.url_input.delete(0, "end")
         
-        title = f"{source_type.capitalize()} Source"
+        title = "Website Source"
         knowledge_pipeline.process_url_background(url=val, title=title, source_type=source_type)
 
     def _reextract_source(self):
@@ -233,17 +229,11 @@ class NotesDocsView(ctk.CTkFrame):
         return {"document": "#1E88E5", "pdf": "#E53935", "youtube": "#E53935", "website": "#43A047", "note": "#8E24AA"}.get(source_type.lower(), Colors.ACCENT_PRIMARY)
 
     def _load_sources(self, event=None):
-        print("[STEP] _load_sources: start")
         try:
             search_query = self.search_entry.get().strip().lower()
         except Exception:
             search_query = ""
         
-        # Safe clear: destroy only the tracked user-added widgets.
-        # DO NOT use self.doc_list.winfo_children() here.
-        # CTkScrollableFrame.winfo_children() also returns its internal canvas and
-        # scrollbar widgets; destroying those causes Tcl_Panic (C-level abort).
-        print(f"[STEP] _load_sources: clearing {len(self._doc_list_widgets)} tracked widgets")
         for widget in self._doc_list_widgets:
             try:
                 if widget.winfo_exists():
@@ -251,7 +241,6 @@ class NotesDocsView(ctk.CTkFrame):
             except Exception:
                 pass
         self._doc_list_widgets.clear()
-        print("[STEP] _load_sources: cleared, querying DB")
             
         filters = {}
         if search_query:
@@ -268,7 +257,6 @@ class NotesDocsView(ctk.CTkFrame):
             filters["type"] = ["note"]
             
         sources = knowledge_service.get_sources(filters=filters if filters else None)
-        print(f"[STEP] _load_sources: got {len(sources)} sources from DB")
         
         if hasattr(self, 'history_label'):
             self.history_label.configure(text=f"History ({len(sources)})")
@@ -279,7 +267,6 @@ class NotesDocsView(ctk.CTkFrame):
             
         for s in sources:
             self._build_source_card(s)
-        print("[STEP] _load_sources: done")
 
     def _build_empty_state(self):
         f = ctk.CTkFrame(self.doc_list, fg_color="transparent")
@@ -291,8 +278,8 @@ class NotesDocsView(ctk.CTkFrame):
 
     def _build_source_card(self, source):
         is_selected = (source["id"] == self.current_source_id)
-        bg_color = blend_color(Colors.GLASS_FILL_HOVER, 0.2) if is_selected else Colors.GLASS_FILL_LIGHT
-        border_color = Colors.ACCENT_PRIMARY if is_selected else Colors.GLASS_BORDER
+        bg_color = blend_color(Colors.CARD_HOVER, 0.2) if is_selected else Colors.CARD_FLOATING
+        border_color = Colors.ACCENT_PRIMARY if is_selected else Colors.BORDER_SUBTLE
         
         card = ctk.CTkFrame(self.doc_list, fg_color=bg_color, corner_radius=12, border_width=1, border_color=border_color)
         card.pack(fill="x", pady=6, padx=2)
@@ -323,7 +310,9 @@ class NotesDocsView(ctk.CTkFrame):
 
         
         title = source.get("title", "Untitled")
-        ctk.CTkLabel(details_frame, text=title, font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY, anchor="w").pack(fill="x")
+        title_lbl = ctk.CTkLabel(details_frame, text=title, font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY, anchor="w", justify="left", wraplength=280)
+        title_lbl.pack(fill="x")
+        title_lbl.bind("<Button-1>", lambda e, s=source: self._open_source(s))
         
         status = source.get("status", "COMPLETED")
         status_colors = {"COMPLETED": "🟢", "PROCESSING": "🟡", "FAILED": "🔴", "PENDING": "🟡"}
@@ -332,11 +321,13 @@ class NotesDocsView(ctk.CTkFrame):
         meta_text = f"{status_icon} {status.title()} • {source.get('updated_at', 'Unknown').split(' ')[0]}"
         if source.get('size'):
             meta_text += f" • {source.get('size')//1024} KB"
-        ctk.CTkLabel(details_frame, text=meta_text, font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED, anchor="w").pack(fill="x", pady=(2, 0))
+        meta_lbl = ctk.CTkLabel(details_frame, text=meta_text, font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED, anchor="w", justify="left", wraplength=280)
+        meta_lbl.pack(fill="x", pady=(2, 0))
+        meta_lbl.bind("<Button-1>", lambda e, s=source: self._open_source(s))
         
         # Actions
         def open_card_menu():
-            menu = tk.Menu(self, tearoff=0, bg=Colors.GLASS_FILL_LIGHT, fg=Colors.TEXT_PRIMARY,
+            menu = tk.Menu(self, tearoff=0, bg=Colors.CARD_FLOATING, fg=Colors.TEXT_PRIMARY,
                            activebackground=Colors.ACCENT_PRIMARY, activeforeground="white",
                            font=(Fonts.BODY[0], 10))
             menu.add_command(label="Open", command=lambda: self._open_source(source))
@@ -348,7 +339,7 @@ class NotesDocsView(ctk.CTkFrame):
             y = self.winfo_pointery()
             menu.tk_popup(x, y)
             
-        ctk.CTkButton(card, text="⋮", font=Fonts.BODY, width=30, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, command=open_card_menu).pack(side="right", padx=10)
+        ctk.CTkButton(card, text="⋮", font=Fonts.BODY, width=30, fg_color="transparent", hover_color=Colors.CARD_HOVER, command=open_card_menu).pack(side="right", padx=10)
 
     # ==========================================
     # RIGHT PANEL (AI KNOWLEDGE PANEL)
@@ -373,7 +364,7 @@ class NotesDocsView(ctk.CTkFrame):
                 self.progress_lbl = ctk.CTkLabel(frame, text=getattr(self, 'current_progress', "Initializing..."), font=Fonts.BODY_BOLD, text_color=Colors.ACCENT_PRIMARY)
                 self.progress_lbl.pack(pady=10)
                 
-                ctk.CTkLabel(frame, text="Groq Intelligence Pipeline is actively analyzing the source.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED).pack()
+                ctk.CTkLabel(frame, text="AUREX Intelligence Pipeline is actively analyzing the source.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED).pack()
                 
             elif self.current_state == "FAILED":
                 print(f"[UI RENDER] Displaying FAILED state for source_id: {self.current_source_id}")
@@ -399,12 +390,16 @@ class NotesDocsView(ctk.CTkFrame):
                 header_meta.pack(fill="x", pady=(0, 15))
                 
                 kb = f"{source_data.get('size', 0)//1024} KB • " if source_data.get('size') else ""
-                meta_str = f"{source_data.get('source_type', 'document').upper()} • {kb}Analyzed {source_data.get('updated_at', '').split(' ')[0]}"
+                
+                proc_time = source_data.get('processing_time')
+                duration_str = f" in {proc_time:.1f}s" if proc_time else ""
+                
+                meta_str = f"{source_data.get('source_type', 'document').upper()} • {kb}Analyzed{duration_str} on {source_data.get('updated_at', '').split(' ')[0]}"
                 ctk.CTkLabel(header_meta, text=meta_str, font=Fonts.SMALL, text_color=Colors.TEXT_MUTED).pack(side="left")
                 
                 # Action Buttons
                 def open_more_menu():
-                    menu = tk.Menu(self, tearoff=0, bg=Colors.GLASS_FILL_LIGHT, fg=Colors.TEXT_PRIMARY,
+                    menu = tk.Menu(self, tearoff=0, bg=Colors.CARD_FLOATING, fg=Colors.TEXT_PRIMARY,
                                    activebackground=Colors.ACCENT_PRIMARY, activeforeground="white",
                                    font=(Fonts.BODY[0], 10))
                     
@@ -423,13 +418,13 @@ class NotesDocsView(ctk.CTkFrame):
                     y = self.winfo_pointery()
                     menu.tk_popup(x, y)
 
-                btn_more = ctk.CTkButton(header_meta, text="⋮ More Actions", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, width=100, command=open_more_menu)
+                btn_more = ctk.CTkButton(header_meta, text="⋮ More Actions", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.CARD_HOVER, width=100, command=open_more_menu)
                 btn_more.pack(side="right", padx=2)
                 
-                btn_copy = ctk.CTkButton(header_meta, text="📋 Copy Analysis", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, width=100, command=lambda: self._action_copy_analysis(source_data))
+                btn_copy = ctk.CTkButton(header_meta, text="📋 Copy Analysis", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.CARD_HOVER, width=100, command=lambda: self._action_copy_analysis(source_data))
                 btn_copy.pack(side="right", padx=2)
                 
-                btn_open = ctk.CTkButton(header_meta, text="🔗 Open Source", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.GLASS_FILL_HOVER, width=100, command=lambda: self._action_open_source(source_data))
+                btn_open = ctk.CTkButton(header_meta, text="🔗 Open Source", font=Fonts.BODY_BOLD, fg_color="transparent", hover_color=Colors.CARD_HOVER, width=100, command=lambda: self._action_open_source(source_data))
                 btn_open.pack(side="right", padx=2)
                 
                 # Content Area (Tabs)
@@ -463,7 +458,14 @@ class NotesDocsView(ctk.CTkFrame):
                 # Transcript Tab
                 tr_scroll = ctk.CTkScrollableFrame(tab_transcript, fg_color="transparent")
                 tr_scroll.pack(fill="both", expand=True)
-                add_section_to_tab(tr_scroll, "📜 Transcript", source_data.get('transcript'), 500, "No transcript stored.")
+                
+                full_transcript = source_data.get('transcript', '') or ""
+                if len(full_transcript) > 15000:
+                    display_transcript = full_transcript[:15000] + "\n\n... [TRANSCRIPT TRUNCATED FOR UI PERFORMANCE. USE 'MORE ACTIONS -> EXPORT' TO VIEW FULL TEXT.]"
+                else:
+                    display_transcript = full_transcript
+                    
+                add_section_to_tab(tr_scroll, "📜 Transcript", display_transcript, 500, "No transcript stored.")
                 
                 # Chapters Tab
                 ch_scroll = ctk.CTkScrollableFrame(tab_chapters, fg_color="transparent")
@@ -527,8 +529,8 @@ class NotesDocsView(ctk.CTkFrame):
         for widget in self._doc_list_widgets:
             if hasattr(widget, "source_id") and widget.winfo_exists():
                 is_selected = (widget.source_id == self.current_source_id)
-                bg_color = blend_color(Colors.GLASS_FILL_HOVER, 0.2) if is_selected else Colors.GLASS_FILL_LIGHT
-                border_color = Colors.ACCENT_PRIMARY if is_selected else Colors.GLASS_BORDER
+                bg_color = blend_color(Colors.CARD_HOVER, 0.2) if is_selected else Colors.CARD_FLOATING
+                border_color = Colors.ACCENT_PRIMARY if is_selected else Colors.BORDER_SUBTLE
                 widget.configure(border_color=border_color, fg_color=bg_color)
 
     def _delete_source(self, source):
@@ -587,7 +589,7 @@ class NotesDocsView(ctk.CTkFrame):
             self._schedule_refresh()
             dialog.destroy()
             
-        ctk.CTkButton(btn_frame, text="Cancel", width=80, fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER, command=dialog.destroy).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="Cancel", width=80, fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER, command=dialog.destroy).pack(side="left", padx=10)
         ctk.CTkButton(btn_frame, text="Delete All", width=80, fg_color=Colors.ERROR, hover_color=blend_color(Colors.ERROR, 0.6), command=confirm).pack(side="left", padx=10)
 
     def _on_analysis_started(self, payload):

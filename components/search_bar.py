@@ -3,7 +3,7 @@ from theme import Colors, Fonts, Dims
 
 class SearchBar(ctk.CTkFrame):
     def __init__(self, parent, placeholder="Search...", command=None, **kwargs):
-        super().__init__(parent, fg_color=Colors.ENTRY_BG, corner_radius=Dims.ENTRY_CORNER, border_width=1, border_color=Colors.ENTRY_BORDER, height=Dims.ENTRY_HEIGHT, **kwargs)
+        super().__init__(parent, fg_color=Colors.INPUT_BG, corner_radius=Dims.ENTRY_CORNER, border_width=1, border_color=Colors.INPUT_BORDER, height=Dims.ENTRY_HEIGHT, **kwargs)
         self.pack_propagate(False)
         
         self.command = command

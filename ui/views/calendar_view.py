@@ -84,7 +84,7 @@ class CalendarView(ctk.CTkFrame):
         
         ctk.CTkButton(
             right_header, text="+ New Schedule", font=Fonts.BUTTON, width=120, height=36,
-            fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.ACCENT_SUBTLE,
+            fg_color=Colors.CARD_FLOATING, hover_color=Colors.ACCENT_SUBTLE,
             border_width=1, border_color=Colors.ACCENT_PRIMARY, corner_radius=12,
             command=self._clear_ai_schedules
         ).pack(side="left", padx=5)
@@ -106,7 +106,7 @@ class CalendarView(ctk.CTkFrame):
         
         # Section 2: AI Prompt
         ctk.CTkLabel(container, text="AI Planning Prompt", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(10, 5))
-        self.prompt_text = ctk.CTkTextbox(container, height=80, font=Fonts.BODY, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, border_width=1)
+        self.prompt_text = ctk.CTkTextbox(container, height=80, font=Fonts.BODY, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, border_width=1)
         self.prompt_text.pack(fill="x", pady=(0, 5))
         self.prompt_text.insert("0.0", "Describe your schedule goals...\n(e.g., 'Plan my study sessions for this week')")
         self.prompt_text.bind("<FocusIn>", lambda e: self._clear_placeholder())
@@ -118,7 +118,7 @@ class CalendarView(ctk.CTkFrame):
         
         templates = ["Study Plan", "Project Plan", "Exam Prep", "Work Schedule", "Deep Focus", "Custom"]
         for i, tmp in enumerate(templates):
-            btn = ctk.CTkButton(template_grid, text=tmp, font=Fonts.SMALL, fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER, text_color=Colors.TEXT_PRIMARY, height=28, command=lambda t=tmp: self._apply_template(t))
+            btn = ctk.CTkButton(template_grid, text=tmp, font=Fonts.SMALL, fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER, text_color=Colors.TEXT_PRIMARY, height=28, command=lambda t=tmp: self._apply_template(t))
             btn.grid(row=i//2, column=i%2, padx=4, pady=4, sticky="ew")
             template_grid.grid_columnconfigure(i%2, weight=1)
             
@@ -139,7 +139,7 @@ class CalendarView(ctk.CTkFrame):
         row = ctk.CTkFrame(parent, fg_color="transparent")
         row.pack(fill="x", pady=2)
         ctk.CTkLabel(row, text=label, font=Fonts.SMALL, text_color=Colors.TEXT_MUTED).pack(side="left")
-        ctk.CTkOptionMenu(row, values=options, variable=variable, font=Fonts.SMALL, fg_color=Colors.GLASS_FILL_LIGHT, button_color=Colors.GLASS_FILL_HOVER, width=120).pack(side="right")
+        ctk.CTkOptionMenu(row, values=options, variable=variable, font=Fonts.SMALL, fg_color=Colors.CARD_FLOATING, button_color=Colors.CARD_HOVER, width=120).pack(side="right")
 
     def _clear_placeholder(self):
         content = self.prompt_text.get("0.0", "end").strip()
@@ -175,10 +175,10 @@ class CalendarView(ctk.CTkFrame):
         # Nav Controls
         nav_controls = ctk.CTkFrame(header, fg_color="transparent")
         nav_controls.pack(side="right")
-        ctk.CTkButton(nav_controls, text="<", width=30, font=Fonts.BUTTON, fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER, command=self._prev_period).pack(side="left", padx=2)
+        ctk.CTkButton(nav_controls, text="<", width=30, font=Fonts.BUTTON, fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER, command=self._prev_period).pack(side="left", padx=2)
         self.period_label = ctk.CTkLabel(nav_controls, text="", font=Fonts.SUBHEADING, text_color=Colors.TEXT_PRIMARY, width=120)
         self.period_label.pack(side="left", padx=5)
-        ctk.CTkButton(nav_controls, text=">", width=30, font=Fonts.BUTTON, fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER, command=self._next_period).pack(side="left", padx=2)
+        ctk.CTkButton(nav_controls, text=">", width=30, font=Fonts.BUTTON, fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER, command=self._next_period).pack(side="left", padx=2)
         
         # Grid Container
         self.grid_container = ctk.CTkScrollableFrame(container, fg_color="transparent")
@@ -188,7 +188,7 @@ class CalendarView(ctk.CTkFrame):
     # REGION 5: BOTTOM ACTION BAR
     # ==========================================
     def _build_bottom_action_bar(self):
-        self.bottom_bar = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL, corner_radius=12, border_width=1, border_color=Colors.GLASS_BORDER, height=60)
+        self.bottom_bar = ctk.CTkFrame(self, fg_color=Colors.CARD_BG, corner_radius=12, border_width=1, border_color=Colors.BORDER_SUBTLE, height=60)
         self.bottom_bar.grid(row=2, column=1, sticky="nsew", padx=5, pady=(5, 10))
         self.bottom_bar.pack_propagate(False)
         
@@ -205,8 +205,8 @@ class CalendarView(ctk.CTkFrame):
         
         for txt, cmd in actions:
             ctk.CTkButton(
-                inner, text=txt, font=Fonts.SMALL_BOLD, fg_color=Colors.GLASS_FILL_LIGHT, 
-                hover_color=Colors.GLASS_FILL_HOVER, text_color=Colors.TEXT_PRIMARY, 
+                inner, text=txt, font=Fonts.SMALL_BOLD, fg_color=Colors.CARD_FLOATING, 
+                hover_color=Colors.CARD_HOVER, text_color=Colors.TEXT_PRIMARY, 
                 height=36, command=cmd
             ).pack(side="left", padx=8)
 
@@ -291,8 +291,8 @@ class CalendarView(ctk.CTkFrame):
                     is_today = (date_obj == datetime.now().date())
                     is_current_month = (date_obj.month == self.current_date.month)
                     
-                    bg_color = Colors.GLASS_FILL_LIGHT if is_today else "transparent"
-                    border_color = Colors.ACCENT_PRIMARY if is_today else Colors.GLASS_BORDER
+                    bg_color = Colors.CARD_FLOATING if is_today else "transparent"
+                    border_color = Colors.ACCENT_PRIMARY if is_today else Colors.BORDER_SUBTLE
                     text_color = Colors.TEXT_PRIMARY if is_current_month else Colors.TEXT_DIM
                     
                     cell = ctk.CTkFrame(self.grid_container, fg_color=bg_color, border_width=1, border_color=border_color, corner_radius=6)
@@ -326,7 +326,7 @@ class CalendarView(ctk.CTkFrame):
                     ev_type = ev.get("event_type", "event")
                     color = ENTITY_COLORS.get(ev_type, Colors.ACCENT_PRIMARY)
                     
-                    card = ctk.CTkFrame(self.grid_container, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=8, border_width=1, border_color=color)
+                    card = ctk.CTkFrame(self.grid_container, fg_color=Colors.CARD_FLOATING, corner_radius=8, border_width=1, border_color=color)
                     card.pack(fill="x", padx=10, pady=5)
                     
                     time_str = ""
@@ -351,7 +351,7 @@ class CalendarView(ctk.CTkFrame):
         
         # Insights Section
         ctk.CTkLabel(container, text="AI Insights", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(0, 10))
-        self.insights_frame = ctk.CTkFrame(container, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=12, border_width=1, border_color=Colors.GLASS_BORDER)
+        self.insights_frame = ctk.CTkFrame(container, fg_color=Colors.CARD_FLOATING, corner_radius=12, border_width=1, border_color=Colors.BORDER_SUBTLE)
         self.insights_frame.pack(fill="x", pady=(0, 20))
         
         # Deadlines Section
@@ -363,7 +363,7 @@ class CalendarView(ctk.CTkFrame):
         header = ctk.CTkFrame(container, fg_color="transparent")
         header.pack(fill="x", pady=(0, 10))
         ctk.CTkLabel(header, text="Today's Agenda", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(side="left")
-        ctk.CTkButton(header, text="+ Add", width=50, font=Fonts.SMALL, fg_color=Colors.GLASS_FILL_LIGHT, hover_color=Colors.GLASS_FILL_HOVER).pack(side="right")
+        ctk.CTkButton(header, text="+ Add", width=50, font=Fonts.SMALL, fg_color=Colors.CARD_FLOATING, hover_color=Colors.CARD_HOVER).pack(side="right")
         
         self.agenda_list = ctk.CTkScrollableFrame(container, fg_color="transparent", height=200)
         self.agenda_list.pack(fill="both", expand=True, pady=(0, 20))
@@ -445,7 +445,7 @@ class CalendarView(ctk.CTkFrame):
             return
             
         for h in history:
-            card = ctk.CTkFrame(self.history_list, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=6)
+            card = ctk.CTkFrame(self.history_list, fg_color=Colors.CARD_FLOATING, corner_radius=6)
             card.pack(fill="x", pady=4)
             
             info = ctk.CTkFrame(card, fg_color="transparent")

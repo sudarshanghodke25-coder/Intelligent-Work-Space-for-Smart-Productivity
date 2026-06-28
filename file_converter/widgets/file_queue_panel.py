@@ -78,8 +78,8 @@ class FileQueuePanel(ctk.CTkFrame):
         self._scroll = ctk.CTkScrollableFrame(
             self,
             fg_color="transparent",
-            scrollbar_button_color=Colors.GLASS_FILL_LIGHT,
-            scrollbar_button_hover_color=Colors.GLASS_FILL_HOVER,
+            scrollbar_button_color=Colors.CARD_FLOATING,
+            scrollbar_button_hover_color=Colors.CARD_HOVER,
         )
         self._scroll.pack(fill="both", expand=True)
 

@@ -31,7 +31,7 @@ class ToastNotification(ctk.CTkFrame):
 
         super().__init__(
             parent,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=12,
             border_width=1,
             border_color=bg_color,

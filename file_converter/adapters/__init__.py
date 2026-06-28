@@ -12,6 +12,8 @@ from .spreadsheet_adapter import SpreadsheetAdapter
 from .audio_adapter import AudioAdapter, VideoToAudioAdapter
 from .archive_adapter import ArchiveAdapter
 from .text_adapter import TextAdapter
+from .data_adapter import DataAdapter
+from .video_adapter import VideoAdapter
 
 __all__ = [
     "BaseAdapter",
@@ -23,4 +25,6 @@ __all__ = [
     "VideoToAudioAdapter",
     "ArchiveAdapter",
     "TextAdapter",
+    "DataAdapter",
+    "VideoAdapter",
 ]

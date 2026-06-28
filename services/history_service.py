@@ -1,5 +1,6 @@
 import json
 from database.database import get_connection
+from services.event_bus import bus
 
 def log_activity(user_id: int, activity_type: str, description: str, action_type: str = None, entity_type: str = None, entity_id: int = None, payload_json: str = None):
     """Logs a user activity with extended metadata for audit and analytics."""
@@ -15,6 +16,9 @@ def log_activity(user_id: int, activity_type: str, description: str, action_type
     ''', (user_id, activity_type, description, action_type, entity_type, entity_id, payload_json))
     conn.commit()
     conn.close()
+    
+    # Trigger live update for UI
+    bus.publish("ACTIVITY_ADDED", {})
 
 def get_recent_activities(user_id: int, limit: int = 20):
     """Fetches recent activities for a user."""
@@ -116,5 +120,17 @@ def clear_history(user_id: int):
     cursor = conn.cursor()
     cursor.execute('DELETE FROM activities WHERE user_id = ?', (user_id,))
     cursor.execute('DELETE FROM chat_history WHERE user_id = ?', (user_id,))
+    # Also clear the new AI architecture chat tables
+    cursor.execute('DELETE FROM chat_messages')
+    cursor.execute('DELETE FROM chat_sessions')
+    # Also clear image history
+    cursor.execute('DELETE FROM image_history WHERE user_id = ?', (user_id,))
+    # Clear plans history
+    cursor.execute('DELETE FROM plan_versions WHERE plan_id IN (SELECT id FROM plans WHERE user_id = ?)', (user_id,))
+    cursor.execute('DELETE FROM plans WHERE user_id = ?', (user_id,))
+    
     conn.commit()
     conn.close()
+    
+    # Notify dashboard and other views to update
+    bus.publish("HISTORY_UPDATED", {})

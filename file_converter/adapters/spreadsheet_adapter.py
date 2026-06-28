@@ -20,7 +20,7 @@ class SpreadsheetAdapter(BaseAdapter):
 
     adapter_name = "SpreadsheetAdapter"
     supported_input_formats  = [".csv", ".xlsx", ".xls", ".json"]
-    supported_output_formats = [".csv", ".xlsx", ".json", ".html", ".txt"]
+    supported_output_formats = [".csv", ".xlsx", ".json", ".html", ".txt", ".pdf"]
 
     def convert(self, job: ConversionJob) -> str:
         self._check_cancelled(job)
@@ -43,6 +43,8 @@ class SpreadsheetAdapter(BaseAdapter):
                 return self._json_to_excel(job)
             elif src in (".csv", ".xlsx", ".xls") and tgt == ".html":
                 return self._data_to_html(job)
+            elif src in (".xlsx", ".xls") and tgt == ".pdf":
+                return self._excel_to_pdf_via_com(job)
             else:
                 raise ConversionFailureError(
                     f"SpreadsheetAdapter cannot handle {src} → {tgt}"
@@ -115,6 +117,53 @@ class SpreadsheetAdapter(BaseAdapter):
         df.to_csv(str(out_path), index=False, encoding="utf-8")
         job.report_progress(1.0, "Done!")
         return str(out_path)
+
+    def _data_to_html(self, job: ConversionJob) -> str:
+        df = self._load_df(job)
+        self._check_cancelled(job)
+        job.report_progress(0.5, "Generating HTML table…")
+        out_path = self._resolve_output_path(job)
+        html = df.to_html(index=False, classes="table table-striped", border=0)
+        
+        # Wrap in basic document structure
+        full_html = f"<!DOCTYPE html><html><head><meta charset='utf-8'></head><body>{html}</body></html>"
+        out_path.write_text(full_html, encoding="utf-8")
+        job.report_progress(1.0, "Done!")
+        return str(out_path)
+
+    def _excel_to_pdf_via_com(self, job: ConversionJob) -> str:
+        """Use Microsoft Excel COM automation (Windows only) to export to PDF."""
+        import sys
+        if sys.platform != "win32":
+            raise ConversionFailureError("Excel to PDF is currently only supported on Windows.")
+            
+        try:
+            import comtypes.client
+        except ImportError:
+            raise RuntimeError("comtypes not available.")
+
+        job.report_progress(0.2, "Starting Excel engine…")
+        excel = comtypes.client.CreateObject("Excel.Application")
+        excel.Visible = False
+        
+        job.report_progress(0.5, "Opening workbook…")
+        try:
+            wb = excel.Workbooks.Open(str(Path(job.source_path).resolve()))
+            self._check_cancelled(job)
+            out_path = self._resolve_output_path(job)
+            
+            job.report_progress(0.7, "Printing to PDF…")
+            # 0 = xlTypePDF
+            wb.ExportAsFixedFormat(0, str(out_path.resolve()))
+        finally:
+            if 'wb' in locals():
+                wb.Close(False)
+            if excel.Workbooks.Count == 0:
+                excel.Quit()
+                
+        job.report_progress(1.0, "Done!")
+        return str(out_path)
+
 
     def _json_to_excel(self, job: ConversionJob) -> str:
         df = self._load_df(job)

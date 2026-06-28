@@ -30,14 +30,14 @@ class TaskModal(ctk.CTkToplevel):
         self._populate()
         
     def _build_ui(self):
-        container = ctk.CTkFrame(self, fg_color=Colors.GLASS_FILL_LIGHT, corner_radius=15, border_width=1, border_color=Colors.GLASS_BORDER)
+        container = ctk.CTkFrame(self, fg_color=Colors.CARD_FLOATING, corner_radius=15, border_width=1, border_color=Colors.BORDER_SUBTLE)
         container.pack(fill="both", expand=True, padx=20, pady=20)
         
         lbl_font = Fonts.SMALL_BOLD
         
         # Title
         ctk.CTkLabel(container, text="Task Title", font=lbl_font, text_color=Colors.TEXT_MUTED).pack(anchor="w", padx=15, pady=(15, 5))
-        self.title_entry = ctk.CTkEntry(container, font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, height=Dims.ENTRY_HEIGHT)
+        self.title_entry = ctk.CTkEntry(container, font=Fonts.ENTRY, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, height=Dims.ENTRY_HEIGHT)
         self.title_entry.pack(fill="x", padx=15)
         
         # Grid for Category, Priority, Due Date
@@ -48,30 +48,30 @@ class TaskModal(ctk.CTkToplevel):
         
         # Category
         ctk.CTkLabel(grid, text="Project/Category", font=lbl_font, text_color=Colors.TEXT_MUTED).grid(row=0, column=0, sticky="w", pady=(0, 5))
-        self.cat_entry = ctk.CTkEntry(grid, font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, height=Dims.ENTRY_HEIGHT)
+        self.cat_entry = ctk.CTkEntry(grid, font=Fonts.ENTRY, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, height=Dims.ENTRY_HEIGHT)
         self.cat_entry.grid(row=1, column=0, sticky="ew", padx=(0, 10))
         
         # Priority
         ctk.CTkLabel(grid, text="Priority", font=lbl_font, text_color=Colors.TEXT_MUTED).grid(row=0, column=1, sticky="w", pady=(0, 5))
         self.priority_var = ctk.StringVar(value="Medium")
-        self.priority_combo = ctk.CTkComboBox(grid, values=["High", "Medium", "Low"], variable=self.priority_var, font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, button_color=Colors.GLASS_FILL_LIGHT, height=Dims.ENTRY_HEIGHT)
+        self.priority_combo = ctk.CTkComboBox(grid, values=["High", "Medium", "Low"], variable=self.priority_var, font=Fonts.ENTRY, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, button_color=Colors.CARD_FLOATING, height=Dims.ENTRY_HEIGHT)
         self.priority_combo.grid(row=1, column=1, sticky="ew")
         
         # Due Date
         ctk.CTkLabel(container, text="Due Date (YYYY-MM-DD)", font=lbl_font, text_color=Colors.TEXT_MUTED).pack(anchor="w", padx=15, pady=(5, 5))
-        self.due_entry = ctk.CTkEntry(container, font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, height=Dims.ENTRY_HEIGHT, placeholder_text="e.g. 2026-12-31")
+        self.due_entry = ctk.CTkEntry(container, font=Fonts.ENTRY, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, height=Dims.ENTRY_HEIGHT, placeholder_text="e.g. 2026-12-31")
         self.due_entry.pack(fill="x", padx=15)
         
         # Description
         ctk.CTkLabel(container, text="Description", font=lbl_font, text_color=Colors.TEXT_MUTED).pack(anchor="w", padx=15, pady=(15, 5))
-        self.desc_text = ctk.CTkTextbox(container, font=Fonts.ENTRY, fg_color=Colors.ENTRY_BG, border_color=Colors.ENTRY_BORDER, height=80, border_width=1)
+        self.desc_text = ctk.CTkTextbox(container, font=Fonts.ENTRY, fg_color=Colors.INPUT_BG, border_color=Colors.INPUT_BORDER, height=80, border_width=1)
         self.desc_text.pack(fill="x", padx=15)
         
         # Buttons
         btn_frame = ctk.CTkFrame(container, fg_color="transparent")
         btn_frame.pack(fill="x", padx=15, pady=20, side="bottom")
         
-        ctk.CTkButton(btn_frame, text="Cancel", font=Fonts.BUTTON, fg_color="transparent", border_width=1, border_color=Colors.GLASS_BORDER, hover_color=Colors.GLASS_FILL_HOVER, command=self.destroy).pack(side="left", expand=True, padx=(0, 5))
+        ctk.CTkButton(btn_frame, text="Cancel", font=Fonts.BUTTON, fg_color="transparent", border_width=1, border_color=Colors.BORDER_SUBTLE, hover_color=Colors.CARD_HOVER, command=self.destroy).pack(side="left", expand=True, padx=(0, 5))
         ctk.CTkButton(btn_frame, text="Save Task", font=Fonts.BUTTON, fg_color=Colors.ACCENT_PRIMARY, hover_color=Colors.ACCENT_HOVER, command=self._save).pack(side="right", expand=True, padx=(5, 0))
         
     def _populate(self):

@@ -43,10 +43,10 @@ class UploadDropZone(ctk.CTkFrame):
     ):
         super().__init__(
             parent,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=20,
             border_width=2,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             **kwargs,
         )
         self._on_files = on_files_dropped
@@ -96,11 +96,11 @@ class UploadDropZone(ctk.CTkFrame):
             content,
             text="  Browse Files",
             font=("Segoe UI", 13, "bold"),
-            fg_color=Colors.GLASS_FILL_LIGHT,
-            hover_color=Colors.GLASS_FILL_HOVER,
+            fg_color=Colors.CARD_FLOATING,
+            hover_color=Colors.CARD_HOVER,
             text_color=Colors.TEXT_PRIMARY,
             border_width=1,
-            border_color=Colors.GLASS_BORDER_BRIGHT,
+            border_color=Colors.BORDER_HOVER,
             corner_radius=12,
             height=40,
             width=160,
@@ -115,10 +115,10 @@ class UploadDropZone(ctk.CTkFrame):
         for icon, label in FORMAT_GROUPS:
             chip = ctk.CTkFrame(
                 badge_frame,
-                fg_color=Colors.GLASS_FILL_LIGHT,
+                fg_color=Colors.CARD_FLOATING,
                 corner_radius=20,
                 border_width=1,
-                border_color=Colors.GLASS_BORDER,
+                border_color=Colors.BORDER_SUBTLE,
             )
             chip.pack(side="left", padx=4)
             ctk.CTkLabel(
@@ -157,16 +157,16 @@ class UploadDropZone(ctk.CTkFrame):
         self._is_dragging = True
         self.configure(
             fg_color=Colors.ACCENT_SUBTLE,
-            border_color=Colors.ACCENT_GLOW,
+            border_color=Colors.ACCENT_PRIMARY,
             border_width=3,
         )
-        self._icon_lbl.configure(text_color=Colors.ACCENT_GLOW)
+        self._icon_lbl.configure(text_color=Colors.ACCENT_PRIMARY)
 
     def _exit_drag_mode(self):
         self._is_dragging = False
         self.configure(
-            fg_color=Colors.GLASS_FILL,
-            border_color=Colors.GLASS_BORDER,
+            fg_color=Colors.CARD_BG,
+            border_color=Colors.BORDER_SUBTLE,
             border_width=2,
         )
         self._icon_lbl.configure(text_color=Colors.TEXT_MUTED)

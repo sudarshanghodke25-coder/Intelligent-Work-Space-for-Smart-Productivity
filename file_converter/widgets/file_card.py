@@ -20,7 +20,7 @@ def _status_color(status: JobStatus) -> str:
     mapping = {
         JobStatus.PENDING:   Colors.TEXT_MUTED,
         JobStatus.QUEUED:    Colors.INFO,
-        JobStatus.RUNNING:   Colors.ACCENT_GLOW,
+        JobStatus.RUNNING:   Colors.ACCENT_PRIMARY,
         JobStatus.PAUSED:    Colors.WARNING,
         JobStatus.COMPLETED: Colors.SUCCESS,
         JobStatus.FAILED:    Colors.ERROR,
@@ -64,10 +64,10 @@ class FileCard(ctk.CTkFrame):
     ):
         super().__init__(
             parent,
-            fg_color=Colors.GLASS_FILL,
+            fg_color=Colors.CARD_BG,
             corner_radius=14,
             border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             **kwargs,
         )
 
@@ -97,7 +97,7 @@ class FileCard(ctk.CTkFrame):
         ctk.CTkLabel(
             row1, text=icon,
             font=("Segoe UI", 22),
-            text_color=Colors.ACCENT_GLOW,
+            text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent",
             width=36,
         ).pack(side="left")
@@ -149,8 +149,8 @@ class FileCard(ctk.CTkFrame):
                 width=110,
                 height=32,
                 corner_radius=8,
-                fg_color=Colors.GLASS_FILL_LIGHT,
-                button_color=Colors.ACCENT_MUTED,
+                fg_color=Colors.CARD_FLOATING,
+                button_color=Colors.BORDER_ACTIVE,
                 button_hover_color=Colors.ACCENT_HOVER,
                 text_color=Colors.TEXT_PRIMARY,
                 font=Fonts.SMALL_BOLD,
@@ -162,7 +162,7 @@ class FileCard(ctk.CTkFrame):
                 row1,
                 text=self._job.target_ext.upper().lstrip("."),
                 font=Fonts.SMALL_BOLD,
-                text_color=Colors.ACCENT_GLOW,
+                text_color=Colors.ACCENT_PRIMARY,
                 fg_color="transparent",
             ).pack(side="left", padx=(0, 16))
 
@@ -174,7 +174,7 @@ class FileCard(ctk.CTkFrame):
             width=32, height=32,
             corner_radius=8,
             fg_color="transparent",
-            hover_color=Colors.GLASS_FILL_HOVER,
+            hover_color=Colors.CARD_HOVER,
             text_color=Colors.TEXT_MUTED,
             command=lambda: None, # Placeholder for individual file settings
         )
@@ -199,8 +199,8 @@ class FileCard(ctk.CTkFrame):
             main,
             height=4,
             corner_radius=2,
-            fg_color=Colors.GLASS_FILL_LIGHT,
-            progress_color=Colors.ACCENT_GLOW,
+            fg_color=Colors.CARD_FLOATING,
+            progress_color=Colors.ACCENT_PRIMARY,
         )
         self._progress_bar.set(self._job.progress)
         self._progress_bar.pack(fill="x", pady=(8, 4))
@@ -235,8 +235,8 @@ class FileCard(ctk.CTkFrame):
         status = self._job.status
         btn_kwargs = dict(
             width=26, height=26, corner_radius=7,
-            fg_color=Colors.GLASS_FILL_LIGHT,
-            hover_color=Colors.GLASS_FILL_HOVER,
+            fg_color=Colors.CARD_FLOATING,
+            hover_color=Colors.CARD_HOVER,
             text_color=Colors.TEXT_SECONDARY,
             font=("Segoe UI", 11),
         )
@@ -246,9 +246,11 @@ class FileCard(ctk.CTkFrame):
                 self._ctrl_frame, text="⏸", command=self._on_pause_click,
                 **btn_kwargs
             ).pack(side="left", padx=2)
+            cancel_kwargs = btn_kwargs.copy()
+            cancel_kwargs.pop("hover_color", None)
             ctk.CTkButton(
                 self._ctrl_frame, text="✕", command=self._on_cancel_click,
-                hover_color=Colors.ERROR, **btn_kwargs
+                hover_color=Colors.ERROR, **cancel_kwargs
             ).pack(side="left", padx=2)
 
         elif status == JobStatus.PAUSED:
@@ -256,15 +258,19 @@ class FileCard(ctk.CTkFrame):
                 self._ctrl_frame, text="▶", command=self._on_resume_click,
                 **btn_kwargs
             ).pack(side="left", padx=2)
+            cancel_kwargs = btn_kwargs.copy()
+            cancel_kwargs.pop("hover_color", None)
             ctk.CTkButton(
                 self._ctrl_frame, text="✕", command=self._on_cancel_click,
-                hover_color=Colors.ERROR, **btn_kwargs
+                hover_color=Colors.ERROR, **cancel_kwargs
             ).pack(side="left", padx=2)
 
         elif status == JobStatus.FAILED:
+            retry_kwargs = btn_kwargs.copy()
+            retry_kwargs.pop("hover_color", None)
             ctk.CTkButton(
                 self._ctrl_frame, text="↺", command=self._on_retry_click,
-                hover_color=Colors.SUCCESS, **btn_kwargs
+                hover_color=Colors.SUCCESS, **retry_kwargs
             ).pack(side="left", padx=2)
 
     def _render_ai_suggestion(self):
@@ -273,14 +279,14 @@ class FileCard(ctk.CTkFrame):
             fg_color=Colors.ACCENT_SUBTLE,
             corner_radius=8,
             border_width=1,
-            border_color=Colors.ACCENT_MUTED,
+            border_color=Colors.BORDER_ACTIVE,
         )
         sug.pack(fill="x", padx=14, pady=(0, 10))
         ctk.CTkLabel(
             sug,
             text=f"💡  {self._job.ai_suggestion}",
             font=Fonts.CAPTION,
-            text_color=Colors.ACCENT_GLOW,
+            text_color=Colors.ACCENT_PRIMARY,
             anchor="w",
             wraplength=500,
             fg_color="transparent",
@@ -294,15 +300,23 @@ class FileCard(ctk.CTkFrame):
         self._progress_bar.set(fraction)
         if message:
             self._job.status_message = message
+        text = _status_text(self._job.status, self._job.status_message)
+        if self._job.status == JobStatus.COMPLETED and self._job.duration_ms > 0:
+            text += f" ({self._job.duration_ms / 1000.0:.2f}s)"
+
         self._status_lbl.configure(
-            text=_status_text(self._job.status, self._job.status_message),
+            text=text,
             text_color=_status_color(self._job.status),
         )
 
     def update_status(self, status: JobStatus) -> None:
         self._job.status = status
+        text = _status_text(status, self._job.status_message)
+        if status == JobStatus.COMPLETED and self._job.duration_ms > 0:
+            text += f" ({self._job.duration_ms / 1000.0:.2f}s)"
+
         self._status_lbl.configure(
-            text=_status_text(status, self._job.status_message),
+            text=text,
             text_color=_status_color(status),
         )
         # Change card border on completion
@@ -313,7 +327,7 @@ class FileCard(ctk.CTkFrame):
         elif status == JobStatus.PAUSED:
             self.configure(border_color=Colors.WARNING)
         else:
-            self.configure(border_color=Colors.GLASS_BORDER)
+            self.configure(border_color=Colors.BORDER_SUBTLE)
         self._render_controls()
 
     def show_ai_suggestion(self, suggestion: str) -> None:

@@ -25,9 +25,9 @@ class Dock(ctk.CTkFrame):
     def _build(self):
         # Inner container with glass styling
         inner = ctk.CTkFrame(
-            self, fg_color=Colors.GLASS_FILL,
+            self, fg_color=Colors.CARD_BG,
             corner_radius=14, border_width=1,
-            border_color=Colors.GLASS_BORDER,
+            border_color=Colors.BORDER_SUBTLE,
             height=44
         )
         inner.pack(fill="x", padx=16, pady=6)
@@ -83,7 +83,7 @@ class Dock(ctk.CTkFrame):
             parent,
             text=icon, font=("Segoe UI", 14),
             fg_color="transparent",
-            hover_color=Colors.GLASS_FILL_HOVER,
+            hover_color=Colors.CARD_HOVER,
             text_color=Colors.TEXT_SECONDARY,
             width=32, height=32, corner_radius=8
         )
