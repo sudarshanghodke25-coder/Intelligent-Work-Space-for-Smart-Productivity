@@ -3,14 +3,12 @@ file_converter/adapters/video_adapter.py
 Video format conversion using moviepy (which wraps ffmpeg).
 """
 
-from __future__ import annotations
 
-from pathlib import Path
 
 from file_converter.adapters.base_adapter import BaseAdapter
 from file_converter.models.conversion_job import ConversionJob
 from file_converter.exceptions.converter_errors import (
-    CorruptFileError, ConversionFailureError, JobCancelledError,
+    CorruptFileError, ConversionFailureError,
 )
 
 class VideoAdapter(BaseAdapter):

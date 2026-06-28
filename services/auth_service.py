@@ -50,7 +50,7 @@ def login_user(email, password, remember_me=False):
     cursor = conn.cursor()
     
     cursor.execute('''
-        SELECT id, full_name, username, email, password_hash, dob, age FROM users
+        SELECT id, full_name, username, email, password_hash, dob, age, profile_image FROM users
         WHERE email = ?
     ''', (email,))
     
@@ -65,7 +65,8 @@ def login_user(email, password, remember_me=False):
             full_name=user["full_name"],
             login_time=login_time,
             dob=user["dob"],
-            age=user["age"]
+            age=user["age"],
+            profile_image=user["profile_image"]
         )
         log_activity(user["id"], "Login", f"User {user['username']} logged in")
         
@@ -143,7 +144,7 @@ def check_active_session():
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT u.id, u.full_name, u.username, u.email, u.dob, u.age, s.expires_at 
+        SELECT u.id, u.full_name, u.username, u.email, u.dob, u.age, u.profile_image, s.expires_at 
         FROM sessions s
         JOIN users u ON s.user_id = u.id
         WHERE s.token = ?
@@ -191,6 +192,57 @@ def logout_user():
                 pass
                 
     current_session.logout()
+
+def update_user_profile(full_name, username, email, dob, age, profile_image=None):
+    """Updates the user profile in the database and current session."""
+    if not current_session.is_logged_in():
+        return False, "Not logged in."
+        
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('''
+            UPDATE users 
+            SET full_name = ?, username = ?, email = ?, dob = ?, age = ?, profile_image = ?
+            WHERE id = ?
+        ''', (full_name, username, email, dob, age, profile_image, current_session.user_id))
+        
+        conn.commit()
+        
+        # Update current session
+        current_session.full_name = full_name
+        current_session.username = username
+        current_session.email = email
+        current_session.dob = dob
+        current_session.age = age
+        current_session.profile_image = profile_image
+        
+        # Also update the local session file so email changes don't break auto-login
+        if os.path.exists(SESSION_FILE):
+            try:
+                with open(SESSION_FILE, "r") as f:
+                    data = json.load(f)
+                data["email"] = email
+                data["full_name"] = full_name
+                with open(SESSION_FILE, "w") as f:
+                    json.dump(data, f)
+            except:
+                pass
+                
+        # Broadcast event
+        from services.event_bus import bus
+        bus.publish("PROFILE_UPDATED")
+        
+        return True, "Profile updated successfully."
+    except sqlite3.IntegrityError as e:
+        if "email" in str(e).lower():
+            return False, "This email is already taken."
+        elif "username" in str(e).lower():
+            return False, "This username is already taken."
+        return False, "A database error occurred."
+    finally:
+        conn.close()
 
 def clear_saved_profile():
     """Completely wipes local saved profile data (Switch Account)."""

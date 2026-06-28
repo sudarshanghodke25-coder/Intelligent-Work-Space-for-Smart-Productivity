@@ -5,10 +5,8 @@ All tables are created via safe CREATE IF NOT EXISTS + ALTER migrations.
 Connects to the same users.db as the rest of AUREX.
 """
 
-from __future__ import annotations
 
-import sqlite3
-from datetime import datetime, date, timedelta
+from datetime import date
 from pathlib import Path
 from typing import List, Optional
 

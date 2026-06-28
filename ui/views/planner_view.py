@@ -3,7 +3,6 @@ import threading
 import json
 import urllib.parse
 import webbrowser
-from datetime import datetime
 from theme import Colors, Fonts, Dims
 from database.database import get_connection
 from services.event_bus import bus

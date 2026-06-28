@@ -1,4 +1,3 @@
-import threading
 
 class EventBus:
     """
@@ -31,8 +30,11 @@ class EventBus:
         callbacks = self.subscribers.get(event_type, [])
         for callback in callbacks:
             if self.app:
+                # Use a named function wrapper to avoid CustomTkinter lambda __name__ bugs
+                def _dispatch(cb=callback, d=data):
+                    cb(d)
                 try:
-                    self.app.after(0, lambda cb=callback, d=data: cb(d))
+                    self.app.after(0, _dispatch)
                 except Exception as e:
                     print(f"[EventBus Error] Failed to marshal via .after(): {e}")
             else:

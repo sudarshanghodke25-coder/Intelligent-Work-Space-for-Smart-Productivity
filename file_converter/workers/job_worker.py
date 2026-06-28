@@ -5,11 +5,9 @@ Supports pause, resume, cancel, retry, and priority ordering.
 Uses the existing AUREX EventBus for UI notifications.
 """
 
-from __future__ import annotations
 
 import queue
 import threading
-from datetime import datetime
 from typing import Callable, Optional
 
 from file_converter.models.conversion_job import ConversionJob, JobStatus
@@ -20,6 +18,7 @@ from file_converter.exceptions.converter_errors import (
 )
 from file_converter.events.converter_events import ConverterEvents
 from file_converter.database.converter_db import insert_history, append_log
+from services.history_service import log_activity
 from authentication.session import current_session
 
 
@@ -146,6 +145,17 @@ class JobWorker:
                 quality=job.quality,
                 ai_suggestion=job.ai_suggestion,
             )
+            
+            # Log successful conversions into global dashboard activities
+            if job.status.name == "COMPLETED":
+                log_activity(
+                    user_id=user_id,
+                    activity_type="file_converted",
+                    description=f"Converted file '{job.source_name}' to {job.target_ext}",
+                    action_type="CONVERT",
+                    entity_type="File",
+                    entity_id=None
+                )
         except Exception as exc:
             append_log(job.job_id, "WARN", f"Failed to persist history: {exc}")
 

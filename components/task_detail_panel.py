@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from theme import Colors, Fonts
+from theme import Colors
 
 class TaskDetailPanel(ctk.CTkFrame):
     def __init__(self, parent, **kwargs):

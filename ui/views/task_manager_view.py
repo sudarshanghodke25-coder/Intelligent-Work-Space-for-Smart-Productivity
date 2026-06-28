@@ -1,7 +1,6 @@
 import customtkinter as ctk
 import threading
-from datetime import datetime
-from theme import Colors, Fonts, Dims, blend_color
+from theme import Colors, Fonts
 from services.event_bus import bus
 from services.task_service import task_service
 from services.task_parser import task_parser

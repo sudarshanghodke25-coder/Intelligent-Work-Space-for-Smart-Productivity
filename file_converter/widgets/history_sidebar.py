@@ -3,7 +3,6 @@ file_converter/widgets/history_sidebar.py
 Sidebar panel showing recent conversion history and storage used.
 """
 
-from __future__ import annotations
 
 from pathlib import Path
 from typing import Callable, List

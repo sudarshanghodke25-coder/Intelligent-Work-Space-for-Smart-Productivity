@@ -4,11 +4,10 @@ Premium animated button with gradient glow, hover elevation, and pulse effect.
 Reusable across the entire File Converter module.
 """
 
-from __future__ import annotations
 
 import math
 import customtkinter as ctk
-from theme import Colors, Fonts, Dims
+from theme import Colors, Dims
 
 
 class AnimatedGlowButton(ctk.CTkFrame):

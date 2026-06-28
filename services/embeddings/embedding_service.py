@@ -1,5 +1,4 @@
 import json
-import sqlite3
 from typing import List
 from database.database import get_connection
 

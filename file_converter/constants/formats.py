@@ -5,8 +5,7 @@ MIME type, icon, and category.  The UI reads from this file —
 nothing is hardcoded in the widgets.
 """
 
-from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict, Optional
 
 

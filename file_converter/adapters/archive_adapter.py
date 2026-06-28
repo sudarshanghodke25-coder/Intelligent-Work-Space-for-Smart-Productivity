@@ -3,7 +3,6 @@ file_converter/adapters/archive_adapter.py
 ZIP / TAR archive extraction and creation.
 """
 
-from __future__ import annotations
 
 import zipfile
 import tarfile

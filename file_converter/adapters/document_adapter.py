@@ -5,7 +5,6 @@ PDF output for Word is delegated to the OS print-to-PDF pathway via
 comtypes (Windows) or LibreOffice subprocess.
 """
 
-from __future__ import annotations
 
 import subprocess
 import sys

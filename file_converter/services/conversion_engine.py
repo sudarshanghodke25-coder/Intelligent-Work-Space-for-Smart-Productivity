@@ -5,10 +5,8 @@ Selects the correct adapter from the registry and executes it.
 Never contains conversion logic directly — all logic lives in adapters.
 """
 
-from __future__ import annotations
 
 from datetime import datetime
-from typing import Optional
 
 # Import adapters package to trigger auto-registration
 import file_converter.adapters  # noqa: F401

@@ -1,9 +1,7 @@
 import customtkinter as ctk
 from tkinter import filedialog
-import threading
 import os
 import shutil
-import json
 from theme import Colors, Fonts, Dims, blend_color
 from ui.glass_card import GlassCard
 from services.event_bus import bus

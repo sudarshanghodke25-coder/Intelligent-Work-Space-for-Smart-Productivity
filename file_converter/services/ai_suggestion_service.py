@@ -4,11 +4,7 @@ Analyses uploaded files and produces intelligent conversion recommendations.
 Integrates with the existing AUREX AI service infrastructure.
 """
 
-from __future__ import annotations
 
-import os
-from pathlib import Path
-from typing import Optional
 
 from file_converter.models.conversion_job import ConversionJob
 from file_converter.constants.formats import get_format

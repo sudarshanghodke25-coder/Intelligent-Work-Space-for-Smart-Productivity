@@ -1,4 +1,54 @@
+import sys
 import customtkinter as ctk
+
+_original_wheel = ctk.CTkScrollableFrame._mouse_wheel_all
+
+def _patched_wheel(self, event):
+    if not hasattr(self, "_scroll_accumulator"):
+        self._scroll_accumulator = 0.0
+    
+    if self.check_if_master_is_canvas(event.widget):
+        if sys.platform.startswith("win"):
+            if getattr(self, "_shift_pressed", False):
+                if self._parent_canvas.xview() != (0.0, 1.0):
+                    delta = event.delta / 6.0
+                    multiplier = getattr(self, "scroll_speed_multiplier", 1.0)
+                    self._scroll_accumulator += (delta * multiplier)
+                    units = int(self._scroll_accumulator)
+                    if units != 0:
+                        self._parent_canvas.xview("scroll", int(-1 * units), "units")
+                        self._scroll_accumulator -= units
+            else:
+                if self._parent_canvas.yview() != (0.0, 1.0):
+                    delta = event.delta / 6.0
+                    multiplier = getattr(self, "scroll_speed_multiplier", 1.0)
+                    self._scroll_accumulator += (delta * multiplier)
+                    units = int(self._scroll_accumulator)
+                    if units != 0:
+                        self._parent_canvas.yview("scroll", int(-1 * units), "units")
+                        self._scroll_accumulator -= units
+        elif sys.platform == "darwin":
+            if getattr(self, "_shift_pressed", False):
+                if self._parent_canvas.xview() != (0.0, 1.0):
+                    delta = float(event.delta)
+                    multiplier = getattr(self, "scroll_speed_multiplier", 1.0)
+                    self._scroll_accumulator += (delta * multiplier)
+                    units = int(self._scroll_accumulator)
+                    if units != 0:
+                        self._parent_canvas.xview("scroll", int(-1 * units), "units")
+                        self._scroll_accumulator -= units
+            else:
+                if self._parent_canvas.yview() != (0.0, 1.0):
+                    delta = float(event.delta)
+                    multiplier = getattr(self, "scroll_speed_multiplier", 1.0)
+                    self._scroll_accumulator += (delta * multiplier)
+                    units = int(self._scroll_accumulator)
+                    if units != 0:
+                        self._parent_canvas.yview("scroll", int(-1 * units), "units")
+                        self._scroll_accumulator -= units
+
+ctk.CTkScrollableFrame._mouse_wheel_all = _patched_wheel
+
 from theme import Colors
 from background import NebulaBackground
 from views.auth_view import AuthView
@@ -38,6 +88,18 @@ class AurexApp(ctk.CTk):
         self.geometry("1400x850")
         self.minsize(1000, 650)
         self.configure(fg_color=Colors.BG_PRIMARY)
+
+        # Set Application Window Icon
+        try:
+            from pathlib import Path
+            from PIL import Image, ImageTk
+            logo_path = Path(__file__).parent.parent / "assets" / "backgrounds" / "logo.png"
+            if logo_path.exists():
+                pil_icon = Image.open(str(logo_path))
+                self._icon_img = ImageTk.PhotoImage(pil_icon)
+                self.iconphoto(True, self._icon_img)
+        except Exception as e:
+            print(f"Failed to load application icon: {e}")
 
         self._current_view = None
         self._current_view_name = None

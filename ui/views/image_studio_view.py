@@ -2,7 +2,7 @@ import customtkinter as ctk
 import os
 import shutil
 from tkinter import filedialog, messagebox
-from theme import Colors, Fonts, Dims
+from theme import Colors, Fonts
 from ui.glass_card import GlassCard
 from services.api_service import aurex_api
 from services.image_service import image_service
@@ -117,7 +117,7 @@ class ImageStudioView(ctk.CTkFrame):
         text_row.pack(fill="x", padx=4, pady=(6, 0))
 
         self.prompt_box = ctk.CTkTextbox(
-            text_row, height=88, font=Fonts.BODY,
+            text_row, height=400, font=Fonts.BODY,
             fg_color="transparent", border_width=0,
             corner_radius=0, wrap="word"
         )
@@ -155,44 +155,8 @@ class ImageStudioView(ctk.CTkFrame):
         except Exception:
             pass
         
-        # ── 2. Style ────────────────────────────────
-        ctk.CTkLabel(self.gen_frame, text="2. Style", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
-        style_grid = ctk.CTkFrame(self.gen_frame, fg_color="transparent")
-        style_grid.pack(fill="x", pady=(2, 12))
-        style_grid.grid_columnconfigure((0, 1), weight=1)
-        
-        styles = [("None", "✨"), ("Realistic", "📸"), ("Anime", "🌸"), ("3D Render", "🧊"), ("Cyberpunk", "🌆"), ("Sketch", "✏️")]
-        self.style_buttons = {}
-        for i, (name, icon) in enumerate(styles):
-            btn = ctk.CTkButton(
-                style_grid, text=f"{icon} {name}", font=Fonts.SMALL_BOLD,
-                fg_color=Colors.ACCENT_PRIMARY if self.selected_style.get() == name else Colors.CARD_FLOATING,
-                hover_color=Colors.CARD_HOVER, height=40, corner_radius=6,
-                command=lambda n=name: self._set_style(n)
-            )
-            btn.grid(row=i // 2, column=i % 2, padx=2, pady=2, sticky="ew")
-            self.style_buttons[name] = btn
-            
-        # ── 3. Aspect Ratio ─────────────────────────
-        ctk.CTkLabel(self.gen_frame, text="3. Aspect Ratio", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
-        ar_frame = ctk.CTkFrame(self.gen_frame, fg_color="transparent")
-        ar_frame.pack(fill="x", pady=(2, 12))
-        ar_frame.grid_columnconfigure((0, 1, 2, 3, 4), weight=1)
-        
-        aspects = ["1:1", "16:9", "9:16", "4:3", "3:4"]
-        self.ar_buttons = {}
-        for i, ar in enumerate(aspects):
-            btn = ctk.CTkButton(
-                ar_frame, text=ar, font=Fonts.SMALL_BOLD,
-                fg_color=Colors.ACCENT_PRIMARY if self.selected_aspect.get() == ar else Colors.CARD_FLOATING,
-                hover_color=Colors.CARD_HOVER, width=0, height=40, corner_radius=6,
-                command=lambda a=ar: self._set_aspect(a)
-            )
-            btn.grid(row=0, column=i, padx=2, sticky="ew")
-            self.ar_buttons[ar] = btn
-            
-        # ── 4. Advanced Options ─────────────────────
-        ctk.CTkLabel(self.gen_frame, text="4. Advanced Options", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(2, 0))
+        # ── 2. Advanced Options ─────────────────────
+        ctk.CTkLabel(self.gen_frame, text="2. Advanced Options", font=Fonts.BODY_BOLD, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(2, 0))
         adv_frame = ctk.CTkFrame(self.gen_frame, fg_color=Colors.CARD_FLOATING, corner_radius=8)
         adv_frame.pack(fill="x", pady=(2, 12))
         self._add_setting_row(adv_frame, "Quality", self.advanced_quality, ["Standard", "High", "Ultra"])
@@ -276,13 +240,9 @@ class ImageStudioView(ctk.CTkFrame):
 
     def _set_style(self, style_name):
         self.selected_style.set(style_name)
-        for name, btn in self.style_buttons.items():
-            btn.configure(fg_color=Colors.ACCENT_PRIMARY if name == style_name else Colors.CARD_FLOATING)
 
     def _set_aspect(self, aspect):
         self.selected_aspect.set(aspect)
-        for ar, btn in self.ar_buttons.items():
-            btn.configure(fg_color=Colors.ACCENT_PRIMARY if ar == aspect else Colors.CARD_FLOATING)
 
     # ==========================================
     # CENTER PANEL — Canvas + Save As only

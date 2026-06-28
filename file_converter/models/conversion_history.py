@@ -3,7 +3,6 @@ file_converter/models/conversion_history.py
 Immutable record written to the DB after job completion.
 """
 
-from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional

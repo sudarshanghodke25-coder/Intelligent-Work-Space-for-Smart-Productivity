@@ -81,7 +81,7 @@ class HistoryCard(ctk.CTkFrame):
             
             ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(60, 60))
             self.thumb_label.configure(image=ctk_img, text="")
-        except Exception as e:
+        except Exception:
             self.thumb_label.configure(text="ERR")
 
     def _on_enter(self, event=None):

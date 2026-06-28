@@ -63,7 +63,7 @@ class KnowledgePipeline:
             # 2. Extract Text & Metadata
             current_stage = "EXTRACTION"
             bus.publish("ANALYSIS_PROGRESS", {"source_id": source_id, "status": "Extracting Content...", "progress": 20})
-            print(f"[EXTRACTION]\nStarting...")
+            print("[EXTRACTION]\nStarting...")
             
             start_time = time.time()
             source = url if url else file_path
@@ -279,7 +279,7 @@ Return EXACTLY this schema:
                         ]
                     )
                     final_response_text = completion.choices[0].message.content
-                except Exception as e:
+                except Exception:
                     final_response_text = chunk_summaries[0]
             else:
                 final_response_text = chunk_summaries[0] if chunk_summaries else "{}"
@@ -294,7 +294,7 @@ Return EXACTLY this schema:
 
             try:
                 ai_data = json.loads(cleaned_response)
-            except Exception as e:
+            except Exception:
                 ai_data = {"summary": final_response_text}
                 
             def list_to_str(val):

@@ -4,7 +4,6 @@ Lightweight toast notification overlay.
 Appears at the bottom-right of the content area, auto-dismisses after 3s.
 """
 
-from __future__ import annotations
 
 import customtkinter as ctk
 from theme import Colors, Fonts

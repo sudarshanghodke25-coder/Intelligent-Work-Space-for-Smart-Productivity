@@ -84,8 +84,7 @@ class SettingsView(ctk.CTkFrame):
         tabs_frame.pack(fill="x")
         
         tabs = [
-            ("⬡ Appearance", True), ("□ Workspace", False), ("👤 Account", False), 
-            ("🔔 Notifications", False), ("🔒 Security", False), ("ℹ️ About", False)
+            ("⬡ Settings", True)
         ]
         
         for text, active in tabs:
@@ -111,7 +110,7 @@ class SettingsView(ctk.CTkFrame):
         app_card.pack(fill="x", pady=(0, 16))
         
         # Appearance Header
-        ctk.CTkLabel(app_card.content, text="Appearance", font=("Sora", 14, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(app_card.content, text="Settings", font=("Sora", 14, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(anchor="w")
         ctk.CTkLabel(app_card.content, text="Customize the look and feel of your workspace.", font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY).pack(anchor="w", pady=(0, 24))
         
         # Theme (Dark/Light)

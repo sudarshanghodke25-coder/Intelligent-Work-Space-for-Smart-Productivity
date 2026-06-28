@@ -2,9 +2,8 @@
 AuthView — Login / Signup authentication frame with glassmorphism styling.
 """
 import customtkinter as ctk
-import math
 from theme import Colors, Fonts, Dims
-from services.auth_service import seamless_auth, login_user, signup_user, check_active_session, clear_saved_profile
+from services.auth_service import login_user, signup_user, check_active_session, clear_saved_profile
 
 class AuthView(ctk.CTkFrame):
     """

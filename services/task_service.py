@@ -1,6 +1,5 @@
 from database.database import get_connection
 from services.event_bus import bus
-import json
 
 class TaskService:
     @staticmethod

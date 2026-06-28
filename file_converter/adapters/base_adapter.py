@@ -5,7 +5,6 @@ Every concrete adapter must implement convert() and can_handle().
 The ConversionEngine selects adapters via the plugin registry.
 """
 
-from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path

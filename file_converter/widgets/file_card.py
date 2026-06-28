@@ -5,15 +5,14 @@ Displays file icon, name, size, target format selector,
 progress bar, status label, and control buttons.
 """
 
-from __future__ import annotations
 
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 import customtkinter as ctk
 
-from theme import Colors, Fonts, Dims
+from theme import Colors, Fonts
 from file_converter.models.conversion_job import ConversionJob, JobStatus
-from file_converter.constants.formats import get_format, FORMATS
+from file_converter.constants.formats import get_format
 
 
 def _status_color(status: JobStatus) -> str:

@@ -4,7 +4,6 @@ Uses Pillow to generate a cosmic background image at runtime.
 """
 
 import random
-import math
 import threading
 import os
 from PIL import Image, ImageDraw, ImageFilter
@@ -80,45 +79,49 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
         (3, 181, 211),     # teal cyan
     ]
 
-    # Create a separate layer for nebula blobs
-    nebula_layer = Image.new("RGB", (width, height), (0, 0, 0))
+    # ── Layer 2 & 3 Optimization: Downscaled Blur ─────────────────────
+    # Gaussian blur is O(N) where N is pixels*radius. We downscale by 4-8x to make rendering instant.
+    scale = 256 / max(width, height) if max(width, height) > 256 else 1.0
+    sw, sh = max(1, int(width * scale)), max(1, int(height * scale))
+
+    nebula_layer = Image.new("RGB", (sw, sh), (0, 0, 0))
     nebula_draw = ImageDraw.Draw(nebula_layer)
 
     num_blobs = rng.randint(6, 10)
     for _ in range(num_blobs):
-        cx = rng.randint(int(-width * 0.2), int(width * 1.2))
-        cy = rng.randint(int(-height * 0.2), int(height * 1.2))
-        rx = rng.randint(int(width * 0.15), int(width * 0.5))
-        ry = rng.randint(int(height * 0.15), int(height * 0.5))
+        cx = rng.randint(int(-sw * 0.2), int(sw * 1.2))
+        cy = rng.randint(int(-sh * 0.2), int(sh * 1.2))
+        rx = rng.randint(int(sw * 0.15), int(sw * 0.5))
+        ry = rng.randint(int(sh * 0.15), int(sh * 0.5))
         color = rng.choice(nebula_colors)
-        # Dim the color for subtlety
         color = tuple(c // 3 for c in color)
-        nebula_draw.ellipse(
-            [cx - rx, cy - ry, cx + rx, cy + ry],
-            fill=color
-        )
+        nebula_draw.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=color)
 
-    # Heavy Gaussian blur to create smooth glow
-    nebula_layer = nebula_layer.filter(ImageFilter.GaussianBlur(radius=max(width, height) // 6))
-
-    # Blend nebula layer onto base using screen-like additive blending
-    from PIL import ImageChops
-    img = ImageChops.add(img, nebula_layer)
+    nebula_layer = nebula_layer.filter(ImageFilter.GaussianBlur(radius=max(sw, sh) // 6))
 
     # ── Layer 3: Subtle secondary glow spots ────────────────────────────
-    glow_layer = Image.new("RGB", (width, height), (0, 0, 0))
+    glow_layer = Image.new("RGB", (sw, sh), (0, 0, 0))
     glow_draw = ImageDraw.Draw(glow_layer)
 
     for _ in range(4):
-        cx = rng.randint(0, width)
-        cy = rng.randint(0, height)
-        r = rng.randint(int(min(width, height) * 0.05), int(min(width, height) * 0.15))
+        cx = rng.randint(0, sw)
+        cy = rng.randint(0, sh)
+        r = rng.randint(int(min(sw, sh) * 0.05), int(min(sw, sh) * 0.15))
         color = rng.choice([(139, 92, 246), (6, 182, 212), (244, 63, 94)])
         color = tuple(c // 2 for c in color)
         glow_draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color)
 
-    glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(radius=max(width, height) // 10))
-    img = ImageChops.add(img, glow_layer)
+    glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(radius=max(sw, sh) // 10))
+
+    from PIL import ImageChops
+    # Add layers together while still small
+    combined_glow = ImageChops.add(nebula_layer, glow_layer)
+    
+    if scale != 1.0:
+        combined_glow = combined_glow.resize((width, height), Image.Resampling.BILINEAR)
+
+    # Blend onto base using screen-like additive blending
+    img = ImageChops.add(img, combined_glow)
 
     # ── Layer 4: Starfield ──────────────────────────────────────────────
     draw = ImageDraw.Draw(img)
@@ -261,7 +264,7 @@ class NebulaBackground:
                     try:
                         blended = Image.blend(start_img, new_img, t)
                         self._apply_image(blended, w, h)
-                    except Exception as e:
+                    except Exception:
                         # Fallback in case of blend error
                         self.current_pil_image = new_img
                         self._apply_image(new_img, w, h)

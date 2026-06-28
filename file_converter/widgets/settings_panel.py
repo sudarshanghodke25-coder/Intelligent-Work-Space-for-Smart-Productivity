@@ -4,14 +4,12 @@ Conversion settings panel — target format, quality, compression,
 output folder, OCR toggle, page range, and Convert Now button.
 """
 
-from __future__ import annotations
 
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 import customtkinter as ctk
-from theme import Colors, Fonts, Dims
-from file_converter.constants.formats import QUALITY_LEVELS, COMPRESSION_LEVELS, FORMATS
+from theme import Colors, Fonts
 from file_converter.widgets.animated_button import AnimatedGlowButton
 
 

@@ -4,9 +4,8 @@ Scrollable file queue panel that holds all FileCard widgets.
 Subscribes to FC_* events and updates cards in a thread-safe way.
 """
 
-from __future__ import annotations
 
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict
 
 import customtkinter as ctk
 from services.event_bus import bus

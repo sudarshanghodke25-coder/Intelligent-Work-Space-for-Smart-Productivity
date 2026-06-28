@@ -5,10 +5,7 @@ Handles: PDF→images, PDF→text, PDF compress, PDF merge/split/rotate.
 Also handles: images→PDF, text/markdown→PDF (basic).
 """
 
-from __future__ import annotations
 
-import os
-import shutil
 from pathlib import Path
 from typing import List
 

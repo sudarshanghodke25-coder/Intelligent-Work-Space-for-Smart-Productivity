@@ -15,9 +15,7 @@ Top-level view that assembles the complete File Converter layout:
 Pure View — delegates all actions to ConverterController.
 """
 
-from __future__ import annotations
 
-from pathlib import Path
 from tkinter import filedialog
 
 import customtkinter as ctk

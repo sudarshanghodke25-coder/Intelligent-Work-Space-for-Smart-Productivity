@@ -4,7 +4,6 @@ Static definitions for Quick Tool cards.
 Loaded by the PluginRegistry and rendered dynamically by the UI.
 """
 
-from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional
 

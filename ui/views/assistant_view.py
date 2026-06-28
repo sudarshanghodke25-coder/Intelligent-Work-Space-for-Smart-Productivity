@@ -1,6 +1,7 @@
 import uuid
 import threading
 import datetime
+import re
 import customtkinter as ctk
 from theme import Colors, Fonts, Dims
 from services.event_bus import bus
@@ -77,6 +78,7 @@ class AssistantView(ctk.CTkFrame):
             scrollbar_button_hover_color=Colors.CARD_HOVER
         )
         self.chat_canvas.pack(fill="both", expand=True, pady=(0, 20))
+        self.chat_canvas.scroll_speed_multiplier = 3.0  # Increased heavily for ultra-fast scrolling
         
         self._load_chat_history()
 
@@ -284,13 +286,73 @@ class AssistantView(ctk.CTkFrame):
         else:
             self._add_bubble("Greetings. I am Aurex AI. How may I assist you today?", "assistant", datetime.datetime.now())
 
+    def _copy_to_clipboard(self, text, btn=None):
+        self.clipboard_clear()
+        self.clipboard_append(text)
+        if btn:
+            original_text = btn.cget("text")
+            btn.configure(text="Copied!")
+            self.after(2000, lambda: btn.configure(text=original_text))
+
+    def _render_text_block(self, parent, text, text_color, justify):
+        if not text.strip(): return
+        
+        # Estimate height based on newlines and approximate wrapping
+        lines = text.split('\n')
+        num_lines = sum(max(1, len(line) // 85) for line in lines) + len(lines)
+        estimated_height = max(1, num_lines) * 20
+        
+        tb = ctk.CTkTextbox(
+            parent, font=Fonts.BODY, text_color=text_color,
+            fg_color="transparent", border_width=0, wrap="word",
+            height=estimated_height, width=650
+        )
+        tb.pack(fill="x", padx=10, pady=2)
+        tb.insert("0.0", text.strip("\n"))
+        tb.configure(state="disabled")
+
+    def _render_code_block(self, parent, lang, code_text):
+        if not code_text.strip(): return
+        
+        code_frame = ctk.CTkFrame(parent, fg_color="#1E1E1E", corner_radius=8, border_width=1, border_color="#333333")
+        code_frame.pack(fill="x", padx=15, pady=8)
+        
+        # Header
+        header = ctk.CTkFrame(code_frame, fg_color="#2D2D2D", corner_radius=8, height=30)
+        header.pack(fill="x")
+        header.pack_propagate(False)
+        
+        lang_display = lang.strip().lower() if lang.strip() else "code"
+        ctk.CTkLabel(header, text=lang_display, font=("Consolas", 11, "bold"), text_color="#A0A0A0").pack(side="left", padx=12)
+        
+        copy_btn = ctk.CTkButton(
+            header, text="Copy", font=("Inter", 11), fg_color="transparent", 
+            hover_color="#444444", text_color="#E0E0E0", width=50, height=24, corner_radius=6
+        )
+        copy_btn.configure(command=lambda: self._copy_to_clipboard(code_text, copy_btn))
+        copy_btn.pack(side="right", padx=6, pady=3)
+        
+        # Estimate height for code
+        lines = code_text.split('\n')
+        num_lines = len(lines)
+        estimated_height = max(1, num_lines) * 18 + 15
+        
+        code_box = ctk.CTkTextbox(
+            code_frame, font=("Consolas", 12), text_color="#D4D4D4",
+            fg_color="transparent", border_width=0, wrap="none",
+            height=estimated_height, width=650
+        )
+        code_box.pack(fill="x", padx=10, pady=(8, 8))
+        code_box.insert("0.0", code_text)
+        code_box.configure(state="disabled")
+
     def _add_bubble(self, text, role, timestamp=None):
         row = ctk.CTkFrame(self.chat_canvas, fg_color="transparent")
         row.pack(fill="x", pady=12, padx=10)
         self._chat_bubbles.append(row)
         
         if role == "user":
-            bg_color = Colors.ACCENT_PRIMARY # Approximates vibrant gradient feel
+            bg_color = Colors.ACCENT_PRIMARY 
             border_color = Colors.ACCENT_HOVER
             text_color = Colors.TEXT_PRIMARY
             side = "right"
@@ -310,15 +372,26 @@ class AssistantView(ctk.CTkFrame):
         header_frame = ctk.CTkFrame(bubble, fg_color="transparent")
         header_frame.pack(fill="x", padx=16, pady=(12, 0))
         ctk.CTkLabel(header_frame, text=sender_text, font=Fonts.SMALL_BOLD, text_color=Colors.ACCENT_PRESSED if role == "assistant" else Colors.TEXT_PRIMARY).pack(side="left")
+        
         if timestamp:
             ts_str = timestamp if isinstance(timestamp, str) else timestamp.strftime("%H:%M")
             ctk.CTkLabel(header_frame, text=ts_str[:16], font=Fonts.CAPTION, text_color=Colors.TEXT_MUTED).pack(side="right", padx=(15, 0))
         
-        lbl = ctk.CTkLabel(
-            bubble, text=text, font=Fonts.BODY, text_color=text_color,
-            justify=justify, wraplength=700 # Increased wrap length
-        )
-        lbl.pack(padx=20, pady=(6, 16))
+        # Content frame for dynamic parsed items
+        content_frame = ctk.CTkFrame(bubble, fg_color="transparent")
+        content_frame.pack(fill="both", expand=True, padx=5, pady=(2, 10))
+        
+        parts = re.split(r'(```.*?```)', text, flags=re.DOTALL)
+        
+        for part in parts:
+            if part.startswith('```') and part.endswith('```'):
+                inner = part[3:-3]
+                lines = inner.split('\n', 1)
+                lang = lines[0] if len(lines) > 1 else ""
+                code_content = lines[1] if len(lines) > 1 else inner
+                self._render_code_block(content_frame, lang, code_content.strip("\n"))
+            else:
+                self._render_text_block(content_frame, part, text_color, justify)
         
         self.after(50, lambda: self.chat_canvas._parent_canvas.yview_moveto(1.0))
         return bubble

@@ -11,16 +11,18 @@ class Session:
             cls._instance.full_name = None
             cls._instance.dob = None
             cls._instance.age = None
+            cls._instance.profile_image = None
             cls._instance.login_time = None
         return cls._instance
 
-    def login(self, user_id, username, email, full_name, login_time, dob=None, age=None):
+    def login(self, user_id, username, email, full_name, login_time, dob=None, age=None, profile_image=None):
         self.user_id = user_id
         self.username = username
         self.email = email
         self.full_name = full_name
         self.dob = dob
         self.age = age
+        self.profile_image = profile_image
         self.login_time = login_time
 
     def logout(self):
@@ -30,6 +32,7 @@ class Session:
         self.full_name = None
         self.dob = None
         self.age = None
+        self.profile_image = None
         self.login_time = None
 
     def is_logged_in(self):

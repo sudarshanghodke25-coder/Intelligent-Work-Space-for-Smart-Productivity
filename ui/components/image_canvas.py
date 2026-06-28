@@ -1,5 +1,4 @@
 import customtkinter as ctk
-import tkinter as tk
 from tkinter import filedialog
 from PIL import Image
 import os
@@ -7,8 +6,7 @@ from theme import Colors, Fonts
 
 # Try to load tkinterdnd2 for Drag and Drop support
 try:
-    from tkinterdnd2 import TkinterDnD, DND_FILES
-    HAS_DND = True
+    HAS_DND = False
 except ImportError:
     HAS_DND = False
 

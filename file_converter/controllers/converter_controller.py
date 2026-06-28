@@ -5,13 +5,10 @@ Mediates between the view (UI widgets), the job manager (workers),
 and the database (persistence).  Uses the AUREX EventBus throughout.
 """
 
-from __future__ import annotations
 
 import os
-import threading
-from datetime import datetime
 from pathlib import Path
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 from typing import Callable, Dict, List, Optional
 
 from services.event_bus import bus
@@ -27,7 +24,7 @@ from file_converter.database.converter_db import (
     pin_file, unpin_file, get_pinned_files,
 )
 from file_converter.exceptions.converter_errors import (
-    UnsupportedFormatError, OutputFolderError, FileSizeExceededError,
+    UnsupportedFormatError, FileSizeExceededError,
 )
 from authentication.session import current_session
 

@@ -3,12 +3,11 @@ file_converter/adapters/audio_adapter.py
 Audio format conversion using pydub.
 """
 
-from __future__ import annotations
 
 from file_converter.adapters.base_adapter import BaseAdapter
 from file_converter.models.conversion_job import ConversionJob
 from file_converter.exceptions.converter_errors import (
-    CorruptFileError, ConversionFailureError, JobCancelledError,
+    CorruptFileError, ConversionFailureError,
 )
 
 _BITRATE_MAP = {

@@ -4,7 +4,6 @@ Text and code format adapters: JSON formatter, Markdown→HTML,
 code formatter, and generic text transformations.
 """
 
-from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -12,7 +11,7 @@ from pathlib import Path
 from file_converter.adapters.base_adapter import BaseAdapter
 from file_converter.models.conversion_job import ConversionJob
 from file_converter.exceptions.converter_errors import (
-    CorruptFileError, ConversionFailureError, JobCancelledError,
+    CorruptFileError, ConversionFailureError,
 )
 
 

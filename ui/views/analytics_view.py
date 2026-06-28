@@ -1,6 +1,5 @@
 import customtkinter as ctk
-import sqlite3
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from theme import Colors, Fonts, Dims
 from ui.glass_card import GlassCard
 from database.database import get_connection

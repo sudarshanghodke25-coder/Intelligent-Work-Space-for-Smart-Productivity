@@ -1,8 +1,8 @@
 import threading
 import customtkinter as ctk
 import calendar
-from datetime import datetime, date, timedelta
-from theme import Colors, Fonts, Dims, blend_color
+from datetime import datetime, timedelta
+from theme import Colors, Fonts, Dims
 from ui.glass_card import GlassCard
 from database.database import get_connection
 from services.event_bus import bus
@@ -482,7 +482,7 @@ class CalendarView(ctk.CTkFrame):
                     density=self.density_mode.get()
                 )
                 self.app.after(0, self._on_generation_success)
-            except Exception as e:
+            except Exception:
                 self.app.after(0, lambda: self._on_generation_error(e))
                 
         threading.Thread(target=run_generation, daemon=True).start()

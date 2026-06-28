@@ -1,5 +1,4 @@
 import customtkinter as ctk
-from datetime import datetime
 from theme import Colors, Fonts, Dims
 
 class TaskModal(ctk.CTkToplevel):

@@ -1,7 +1,6 @@
-import os
 import json
 import uuid
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from database.database import get_connection
 from services.event_bus import bus
 from services.api_service import aurex_api

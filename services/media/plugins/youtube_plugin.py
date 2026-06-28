@@ -1,4 +1,3 @@
-import os
 import re
 import time
 from services.media.plugins.base import MediaPlugin

@@ -1,6 +1,5 @@
 import os
 import tempfile
-import json
 from services.media.providers.base import TranscriptProvider
 from services.media.cancellation import cancellation_manager
 

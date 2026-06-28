@@ -4,7 +4,6 @@ Typed exception hierarchy for the File Converter module.
 Every error category maps to a specific recovery strategy.
 """
 
-from __future__ import annotations
 from typing import Optional
 
 

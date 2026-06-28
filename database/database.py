@@ -5,10 +5,13 @@ DB_DIR = Path(__file__).parent
 DB_PATH = DB_DIR / "users.db"
 
 def get_connection():
-    """Returns a connection to the SQLite database."""
+    """Returns a connection to the SQLite database with optimized PRAGMAs."""
     DB_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    # Performance optimizations: Enable Write-Ahead Logging and normal synchronous mode
+    conn.execute("PRAGMA journal_mode=WAL;")
+    conn.execute("PRAGMA synchronous=NORMAL;")
     return conn
 
 def init_db():

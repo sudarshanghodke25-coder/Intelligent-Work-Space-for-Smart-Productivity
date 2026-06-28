@@ -15,7 +15,6 @@ class VimeoPlugin(MediaPlugin):
         
         try:
             from yt_dlp import YoutubeDL
-            import os
             
             print(f"[VimeoPlugin] Starting yt-dlp extraction for {source}")
             ydl_opts = {

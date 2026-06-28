@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from theme import Colors, Fonts, Dims
+from theme import Colors, Fonts
 from ui.glass_card import GlassCard
 from utils.animations import apply_hover_animation
 

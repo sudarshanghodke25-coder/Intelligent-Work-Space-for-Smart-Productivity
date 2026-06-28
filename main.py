@@ -5,7 +5,6 @@ A futuristic deep-space nebula desktop application
 with glassmorphism UI aesthetic and SQLite integration.
 """
 
-import os
 from dotenv import load_dotenv
 
 # 🚀 Loads the key from your hidden .env file directly into system memory

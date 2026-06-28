@@ -2,7 +2,6 @@
 This file is deprecated and will be removed in a future release.
 Please use the new plugin architecture in `services/media/plugins/` and `services/media/orchestrator.py` instead.
 """
-import time
 from typing import Dict, Any
 from services.youtube.dependency_manager import dependency_manager
 from services.youtube.cancellation import cancellation_manager
@@ -49,7 +48,6 @@ class TranscriptProviderManager:
             raise YoutubeDownloadError("Could not extract video_id from metadata")
 
         # --- Cache Lookup ---
-        from services.knowledge_service import knowledge_service
         from database.database import get_connection
         conn = get_connection()
         cursor = conn.cursor()

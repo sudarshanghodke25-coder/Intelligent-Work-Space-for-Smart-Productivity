@@ -3,9 +3,7 @@ file_converter/adapters/spreadsheet_adapter.py
 Handles CSV ↔ Excel and CSV/Excel → PDF/JSON via openpyxl and pandas.
 """
 
-from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from file_converter.adapters.base_adapter import BaseAdapter

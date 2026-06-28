@@ -1,8 +1,8 @@
 import customtkinter as ctk
 import os
 from PIL import Image, ImageGrab
-from tkinter import filedialog, messagebox
-from theme import Colors, Fonts, Dims
+from tkinter import filedialog
+from theme import Colors, Fonts
 import threading
 
 class ReferenceUploader(ctk.CTkFrame):
@@ -160,7 +160,7 @@ class ReferenceUploader(ctk.CTkFrame):
                     command=lambda p=path: self.remove_image(p)
                 )
                 del_btn.place(relx=0.95, rely=0.05, anchor="ne")
-            except Exception as e:
+            except Exception:
                 ctk.CTkLabel(frame, text="Error", font=Fonts.CAPTION, text_color=Colors.ERROR).place(relx=0.5, rely=0.5, anchor="center")
                 
         threading.Thread(target=load_img, daemon=True).start()

@@ -46,7 +46,7 @@ class WhisperProvider(TranscriptProvider):
                 if not os.path.exists(audio_file):
                     raise Exception("Audio download failed or file not found")
                 
-                print(f"[YT] Audio extracted. Running faster-whisper...")
+                print("[YT] Audio extracted. Running faster-whisper...")
                 model = WhisperModel(self.model_size, device="cpu", compute_type="int8")
                 segments, info = model.transcribe(audio_file, beam_size=5)
                 

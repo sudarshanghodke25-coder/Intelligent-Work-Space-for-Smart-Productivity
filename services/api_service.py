@@ -96,7 +96,7 @@ class AurexAPIClient:
 
     def chat_completions_create(self, messages, model=None, response_format=None, temperature=0.7, max_tokens=1024):
         if not self.client:
-            raise ValueError(f"AI Client not initialized properly. Check diagnostics.")
+            raise ValueError("AI Client not initialized properly. Check diagnostics.")
             
         kwargs = {
             "model": model or self.model,
@@ -118,7 +118,7 @@ class AurexAPIClient:
 
     def audio_transcriptions_create(self, file, model="whisper-1"):
         if not self.client:
-            raise ValueError(f"AI Client not initialized properly. Check diagnostics.")
+            raise ValueError("AI Client not initialized properly. Check diagnostics.")
         
         # Adjust model name for Groq Whisper
         if self.provider == "Groq":

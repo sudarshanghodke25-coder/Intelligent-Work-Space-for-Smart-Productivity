@@ -1,12 +1,10 @@
-import os
 import datetime
 import psutil
 import customtkinter as ctk
-from theme import Colors, Fonts, Dims
+from theme import Colors
 from database.database import get_connection
 from authentication.session import current_session
 from services.event_bus import bus
-from services.api_service import aurex_api
 
 # =========================================================================
 # HELPER CUSTOM WIDGETS FOR GLASSMORPHISM & VISUALS
@@ -80,7 +78,7 @@ class DashboardView(ctk.CTkFrame):
         events = [
             "HISTORY_UPDATED", "TASK_CREATED", "TASK_COMPLETED", "TASK_DELETED",
             "CHAT_RESPONSE", "SUMMARY_GENERATED", "IMAGE_GEN_SUCCESS",
-            "LOGOUT", "USER_LOGGED_IN", "ACTIVITY_ADDED"
+            "LOGOUT", "USER_LOGGED_IN", "ACTIVITY_ADDED", "FC_HISTORY_UPDATED"
         ]
         for event in events:
             bus.subscribe(event, self._refresh_all_safe)
@@ -142,8 +140,13 @@ class DashboardView(ctk.CTkFrame):
         if hour < 12: greeting = "Good Morning"
         elif hour < 17: greeting = "Good Afternoon"
         
+        header_frame.grid_columnconfigure(0, weight=1)
+        
+        text_container = ctk.CTkFrame(header_frame, fg_color="transparent")
+        text_container.grid(row=0, column=0, sticky="w")
+        
         title_lbl = ctk.CTkLabel(
-            header_frame, 
+            text_container, 
             text=f"{greeting}, {username}! 👋", 
             font=("Sora", 24, "bold"), 
             text_color=Colors.TEXT_PRIMARY
@@ -151,12 +154,28 @@ class DashboardView(ctk.CTkFrame):
         title_lbl.pack(anchor="w")
         
         subtitle_lbl = ctk.CTkLabel(
-            header_frame, 
+            text_container, 
             text="Here's what's happening in your workspace today.", 
             font=("Inter", 13), 
             text_color=Colors.TEXT_MUTED
         )
         subtitle_lbl.pack(anchor="w", pady=(4, 0))
+        
+        settings_btn = ctk.CTkButton(
+            header_frame, 
+            text="⚙️ Settings", 
+            font=("Inter", 12, "bold"),
+            fg_color=Colors.CARD_BG, 
+            hover_color=Colors.CARD_HOVER, 
+            text_color=Colors.TEXT_PRIMARY,
+            border_width=1,
+            border_color=Colors.BORDER_SUBTLE,
+            corner_radius=8,
+            width=100, 
+            height=32,
+            command=lambda: bus.publish("NAVIGATE_TO", "Settings")
+        )
+        settings_btn.grid(row=0, column=1, sticky="e")
 
     def _get_db_stats(self):
         """Query actual stats from DB. No fake fallbacks."""
@@ -188,7 +207,7 @@ class DashboardView(ctk.CTkFrame):
             stats["images"] = val
             
             # Count conversions
-            c.execute("SELECT COUNT(*) FROM activities WHERE activity_type='file_converted'")
+            c.execute("SELECT COUNT(*) FROM converter_history WHERE status='COMPLETED'")
             val = c.fetchone()[0]
             stats["files"] = val
             
@@ -402,7 +421,7 @@ class DashboardView(ctk.CTkFrame):
                         
                     activities.append((desc, f"{user_name} • {formatted_time}", Colors.ACCENT_PRIMARY))
             conn.close()
-        except Exception as e:
+        except Exception:
             pass
             
         if not activities:

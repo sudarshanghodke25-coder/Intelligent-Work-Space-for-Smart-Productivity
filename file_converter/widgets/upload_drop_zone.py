@@ -5,7 +5,6 @@ format badges, and file-dialog fallback.
 Uses tkinterdnd2 for native drag-and-drop if available.
 """
 
-from __future__ import annotations
 
 import math
 from pathlib import Path
@@ -14,7 +13,7 @@ from typing import Callable, List
 
 import customtkinter as ctk
 
-from theme import Colors, Fonts, Dims
+from theme import Colors, Fonts
 
 
 # ── Format category display groups ────────────────────────────────────────

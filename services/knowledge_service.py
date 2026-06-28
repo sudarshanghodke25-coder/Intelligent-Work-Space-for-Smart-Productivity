@@ -1,7 +1,6 @@
 import os
 from database.database import get_connection
 from services.event_bus import bus
-from datetime import datetime
 
 class KnowledgeService:
     @staticmethod

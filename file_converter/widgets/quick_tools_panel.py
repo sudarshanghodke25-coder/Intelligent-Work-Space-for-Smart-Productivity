@@ -3,7 +3,6 @@ file_converter/widgets/quick_tools_panel.py
 Sidebar grid of clickable quick-tool cards.
 """
 
-from __future__ import annotations
 
 from typing import Callable, List
 
