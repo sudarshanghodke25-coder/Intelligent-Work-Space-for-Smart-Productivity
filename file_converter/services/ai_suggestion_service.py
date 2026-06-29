@@ -1,7 +1,7 @@
 """
 file_converter/services/ai_suggestion_service.py
 Analyses uploaded files and produces intelligent conversion recommendations.
-Integrates with the existing AUREX AI service infrastructure.
+Integrates with the existing FLOWSPACE AI service infrastructure.
 """
 
 
@@ -14,7 +14,7 @@ class AISuggestionService:
     """
     Generates format-specific conversion recommendations.
     Uses rule-based heuristics first (no API call needed for speed),
-    then optionally enriches via the AUREX AI API.
+    then optionally enriches via the FLOWSPACE AI API.
     """
 
     # Rule-based suggestion map: (source_ext, condition) → suggestion text

@@ -78,7 +78,7 @@ class AurexAPIClient:
         }
 
     def print_diagnostics(self):
-        print("\n--- AUREX SYSTEM DIAGNOSTICS ---")
+        print("\n--- FLOWSPACE SYSTEM DIAGNOSTICS ---")
         diag = self.get_diagnostics()
         if diag["status"] == "FAIL":
             print(f"X SYSTEM ERROR: {diag['message']}")

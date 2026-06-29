@@ -32,7 +32,7 @@ class SignupView(ctk.CTkFrame):
 
     def _build_header(self):
         ctk.CTkLabel(
-            self.inner, text="◆ AUREX",
+            self.inner, text="◆ FLOWSPACE",
             font=("Segoe UI", 24, "bold"), text_color=Colors.ACCENT_PRIMARY,
             fg_color="transparent"
         ).pack(pady=(0, 5))

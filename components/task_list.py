@@ -26,7 +26,8 @@ class TaskList(ctk.CTkFrame):
             widget.destroy()
 
         conn = get_connection()
-        tasks_db = conn.execute("SELECT * FROM tasks WHERE status!='Completed' ORDER BY CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END, due_date ASC LIMIT 5").fetchall()
+        user_id = current_session.user_id or 1
+        tasks_db = conn.execute("SELECT * FROM tasks WHERE status!='Completed' AND user_id=? ORDER BY CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 WHEN 'Low' THEN 3 ELSE 4 END, due_date ASC LIMIT 5", (user_id,)).fetchall()
         conn.close()
 
         self.tasks = []

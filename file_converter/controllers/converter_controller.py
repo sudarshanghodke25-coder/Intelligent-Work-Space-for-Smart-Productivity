@@ -2,7 +2,7 @@
 file_converter/controllers/converter_controller.py
 Main MVC controller for the File Converter module.
 Mediates between the view (UI widgets), the job manager (workers),
-and the database (persistence).  Uses the AUREX EventBus throughout.
+and the database (persistence).  Uses the FLOWSPACE EventBus throughout.
 """
 
 
@@ -76,7 +76,7 @@ class ConverterController:
     # ── Event publishing ───────────────────────────────────────────────────
 
     def _publish_event(self, event_type: str, data=None) -> None:
-        """Thread-safe event publishing via the AUREX EventBus."""
+        """Thread-safe event publishing via the FLOWSPACE EventBus."""
         bus.publish(event_type, data)
 
     # ── File validation & job creation ────────────────────────────────────

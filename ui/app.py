@@ -84,22 +84,12 @@ class AurexApp(ctk.CTk):
             
         ctk.set_default_color_theme("dark-blue")
 
-        self.title("AUREX Cosmic Glass Workspace")
+        self.title("FLOWSPACE Cosmic Glass Workspace")
         self.geometry("1400x850")
         self.minsize(1000, 650)
         self.configure(fg_color=Colors.BG_PRIMARY)
 
-        # Set Application Window Icon
-        try:
-            from pathlib import Path
-            from PIL import Image, ImageTk
-            logo_path = Path(__file__).parent.parent / "assets" / "backgrounds" / "logo.png"
-            if logo_path.exists():
-                pil_icon = Image.open(str(logo_path))
-                self._icon_img = ImageTk.PhotoImage(pil_icon)
-                self.iconphoto(True, self._icon_img)
-        except Exception as e:
-            print(f"Failed to load application icon: {e}")
+        # Set Application Window Icon (Removed)
 
         self._current_view = None
         self._current_view_name = None
@@ -138,7 +128,7 @@ class AurexApp(ctk.CTk):
             self._view_registry = {
                 "Dashboard": DashboardView,
                 "Settings": SettingsView,
-                "Aurex AI": AssistantView,
+                "FLOWSPACE AI": AssistantView,
                 "History": HistoryView,
                 "AI Planner": PlannerView,
                 "Task Manager": TasksView,

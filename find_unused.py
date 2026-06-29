@@ -46,7 +46,7 @@ def get_unused_imports(filepath):
     return real_unused
 
 total = 0
-for root, dirs, files in os.walk('d:/Aurex'):
+for root, dirs, files in os.walk('d:/FLOWSPACE'):
     if '__pycache__' in root or '.venv' in root or '.git' in root:
         continue
     for f in files:

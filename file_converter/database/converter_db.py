@@ -2,7 +2,7 @@
 file_converter/database/converter_db.py
 SQLite persistence layer for the File Converter module.
 All tables are created via safe CREATE IF NOT EXISTS + ALTER migrations.
-Connects to the same users.db as the rest of AUREX.
+Connects to the same users.db as the rest of FLOWSPACE.
 """
 
 
@@ -18,7 +18,7 @@ from file_converter.models.conversion_history import HistoryEntry, ConverterStat
 
 def init_converter_tables() -> None:
     """
-    Create all File Converter tables in the shared AUREX database.
+    Create all File Converter tables in the shared FLOWSPACE database.
     Safe to call multiple times — uses CREATE IF NOT EXISTS and ALTER guards.
     """
     conn = get_connection()

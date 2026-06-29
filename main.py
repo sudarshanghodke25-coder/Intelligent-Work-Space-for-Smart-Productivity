@@ -1,6 +1,6 @@
 
 """
-AUREX Cosmic Glass Workspace
+FLOWSPACE Cosmic Glass Workspace
 A futuristic deep-space nebula desktop application
 with glassmorphism UI aesthetic and SQLite integration.
 """
@@ -17,7 +17,7 @@ from ui.app import AurexApp
 aurex_api.print_diagnostics()
 
 if aurex_api.get_diagnostics()["status"] == "FAIL":
-    print("\n[!] FATAL ERROR: AUREX cannot start without a valid AI provider API key.")
+    print("\n[!] FATAL ERROR: FLOWSPACE cannot start without a valid AI provider API key.")
     print("Please add AUREX_API_KEY, GROQ_API_KEY, OPENAI_API_KEY, GITHUB_TOKEN, or HF_TOKEN to your .env file.")
     import sys
     sys.exit(1)

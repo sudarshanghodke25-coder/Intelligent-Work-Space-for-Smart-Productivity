@@ -45,7 +45,7 @@ class SuggestionsCard(ctk.CTkFrame):
         if not self.suggestions:
             ctk.CTkLabel(
                 self.container,
-                text="No suggestions yet. Keep working and Aurex AI will surface insights here.",
+                text="No suggestions yet. Keep working and FLOWSPACE AI will surface insights here.",
                 font=Fonts.SMALL, text_color=Colors.TEXT_MUTED,
                 wraplength=320, justify="left", anchor="w"
             ).pack(fill="x", padx=12, pady=20)

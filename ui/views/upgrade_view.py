@@ -21,7 +21,7 @@ class UpgradeView(ctk.CTkFrame):
 
         subtitle = ctk.CTkLabel(
             header,
-            text="Unlock the full potential of Aurex Cosmic Glass Workspace.\nSelect the plan that best fits your workflow.",
+            text="Unlock the full potential of FLOWSPACE Cosmic Glass Workspace.\nSelect the plan that best fits your workflow.",
             font=Fonts.BODY,
             text_color=Colors.TEXT_SECONDARY,
             justify="center"

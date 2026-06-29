@@ -36,7 +36,7 @@ class Dock(ctk.CTkFrame):
         # Text input field
         self.entry = ctk.CTkEntry(
             inner,
-            placeholder_text="Ask Aurex anything...",
+            placeholder_text="Ask FLOWSPACE anything...",
             placeholder_text_color=Colors.TEXT_DIM,
             font=Fonts.BODY,
             fg_color="transparent",

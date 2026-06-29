@@ -1,5 +1,5 @@
 """
-Aurex Design System — Centralized theme, typography, and animation tokens.
+FLOWSPACE Design System — Centralized theme, typography, and animation tokens.
 Premium Desktop UI/UX (Notion/Cursor inspired).
 """
 
@@ -33,7 +33,7 @@ def blend_color(hex_color, alpha: float, bg = "#0F172A"):
         return hex_color
 
 class Colors:
-    """AUREX Master Color Palette"""
+    """FLOWSPACE Master Color Palette"""
     # Backgrounds
     BG_PRIMARY = ("#F3F4F6", "#050816")
     BG_SECONDARY = ("#FFFFFF", "#09101D")

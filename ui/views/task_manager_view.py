@@ -15,7 +15,7 @@ from components.task_detail_panel import TaskDetailPanel
 from components.task_modal import TaskModal
 
 class TasksView(ctk.CTkFrame):
-    """AUREX Task Manager V3 – Premium Productivity Workspace"""
+    """FLOWSPACE Task Manager V3 – Premium Productivity Workspace"""
     
     def __init__(self, parent, **kwargs):
         super().__init__(parent, fg_color="transparent", **kwargs)
@@ -257,7 +257,7 @@ class TasksView(ctk.CTkFrame):
         empty_frame = ctk.CTkFrame(self.task_list_canvas, fg_color="transparent")
         empty_frame.pack(fill="both", expand=True, pady=100)
         
-        ctk.CTkLabel(empty_frame, text="Welcome to AUREX Task Manager", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(pady=(10, 5))
+        ctk.CTkLabel(empty_frame, text="Welcome to FLOWSPACE Task Manager", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(pady=(10, 5))
         ctk.CTkLabel(empty_frame, text="Start organizing your work.\nCreate your first task using the + New Task button or the AI Quick Add below.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED, justify="center").pack(pady=(0, 20))
         
         ctk.CTkButton(
@@ -367,7 +367,7 @@ class TasksView(ctk.CTkFrame):
         stats = task_analytics.get_user_stats(self.user_id)
         
         if stats["total_tasks"] == 0:
-            ctk.CTkLabel(self.right_container, text="AUREX Setup", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(10, 5), padx=5)
+            ctk.CTkLabel(self.right_container, text="FLOWSPACE Setup", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(10, 5), padx=5)
             ctk.CTkLabel(self.right_container, text="Create your first task to unlock productivity analytics.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED).pack(anchor="w", pady=(0, 20), padx=5)
         else:
             ctk.CTkLabel(self.right_container, text="No Task Selected", font=Fonts.HEADING, text_color=Colors.TEXT_PRIMARY).pack(anchor="w", pady=(10, 20), padx=5)

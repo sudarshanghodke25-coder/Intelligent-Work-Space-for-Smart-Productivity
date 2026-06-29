@@ -115,7 +115,7 @@ class PlannerView(ctk.CTkFrame):
         self._clear_roadmaps()
         
         if not plans:
-            lbl = ctk.CTkLabel(self.roadmap_list_canvas, text="No plans created yet.\nGenerate your first roadmap\nwith Aurex AI.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED, justify="center")
+            lbl = ctk.CTkLabel(self.roadmap_list_canvas, text="No plans created yet.\nGenerate your first roadmap\nwith FLOWSPACE AI.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED, justify="center")
             lbl.pack(pady=40)
             self._roadmap_widgets.append(lbl)
             return
@@ -244,14 +244,14 @@ class PlannerView(ctk.CTkFrame):
         if desc:
             ctk.CTkLabel(self._workspace, text=desc, font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY, anchor="w", justify="left", wraplength=450).pack(fill="x", pady=(0, 20))
             
-        # Aurex Recommendation
+        # FLOWSPACE Recommendation
         tips = insights.get("tips", [])
         if tips:
             rec_frame = ctk.CTkFrame(self._workspace, fg_color=Colors.ACCENT_SUBTLE, corner_radius=12, border_width=1, border_color=Colors.BORDER_ACTIVE)
             rec_frame.pack(fill="x", pady=(0, 20))
             inner_rec = ctk.CTkFrame(rec_frame, fg_color="transparent")
             inner_rec.pack(fill="x", padx=15, pady=15)
-            ctk.CTkLabel(inner_rec, text="✨ Aurex Recommendation", font=Fonts.SMALL_BOLD, text_color=Colors.ACCENT_PRIMARY).pack(anchor="w", pady=(0, 5))
+            ctk.CTkLabel(inner_rec, text="✨ FLOWSPACE Recommendation", font=Fonts.SMALL_BOLD, text_color=Colors.ACCENT_PRIMARY).pack(anchor="w", pady=(0, 5))
             for tip in tips:
                 ctk.CTkLabel(inner_rec, text=f"• {tip}", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY, justify="left", wraplength=450, anchor="w").pack(fill="x", pady=2)
 
@@ -491,7 +491,7 @@ class PlannerView(ctk.CTkFrame):
         
         self.gen_btn.configure(state="disabled", text="Generating...")
         self._clear_center()
-        loading = ctk.CTkLabel(self.center_canvas, text="Aurex AI is building your roadmap...", font=Fonts.HEADING, text_color=Colors.ACCENT_PRIMARY)
+        loading = ctk.CTkLabel(self.center_canvas, text="FLOWSPACE AI is building your roadmap...", font=Fonts.HEADING, text_color=Colors.ACCENT_PRIMARY)
         loading.pack(pady=100)
         self._center_widgets.append(loading)
         

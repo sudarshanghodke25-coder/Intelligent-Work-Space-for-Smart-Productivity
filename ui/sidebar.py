@@ -7,7 +7,7 @@ from services.event_bus import bus
 
 MENU_ITEMS = [
     ("📊", "Dashboard"),
-    ("🤖", "Aurex AI"),
+    ("🤖", "FLOWSPACE AI"),
     ("📋", "AI Planner")
 ]
 
@@ -111,16 +111,9 @@ class Sidebar(ctk.CTkFrame):
         brand_frame.pack(fill="x", padx=Dims.MAIN_PAD_X, pady=(24, 16))
         brand_frame.pack_propagate(False)
 
-        try:
-            import os
-            from PIL import Image
-            logo_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "backgrounds", "logo.png")
-            logo_img = ctk.CTkImage(Image.open(logo_path), size=(32, 32))
-            ctk.CTkLabel(brand_frame, image=logo_img, text="").pack(side="left", padx=(0, 12))
-        except Exception:
-            ctk.CTkLabel(brand_frame, text="◆", font=("Segoe UI", 24, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(side="left", padx=(0, 12))
+        ctk.CTkLabel(brand_frame, text="◆", font=("Segoe UI", 24, "bold"), text_color=Colors.ACCENT_PRIMARY).pack(side="left", padx=(0, 12))
 
-        ctk.CTkLabel(brand_frame, text="AUREX", font=Fonts.BRAND, text_color=Colors.TEXT_PRIMARY).pack(side="left")
+        ctk.CTkLabel(brand_frame, text="FLOWSPACE", font=Fonts.BRAND, text_color=Colors.TEXT_PRIMARY).pack(side="left")
 
         # Separator
         sep = ctk.CTkFrame(self, fg_color=Colors.BORDER_SUBTLE, height=1)
@@ -156,7 +149,7 @@ class Sidebar(ctk.CTkFrame):
         planet_lbl = ctk.CTkLabel(upgrade_card, text="🪐", font=("Segoe UI Emoji", 26))
         planet_lbl.pack(anchor="w", padx=15, pady=(12, 2))
 
-        title_lbl = ctk.CTkLabel(upgrade_card, text="Upgrade to Aurex Pro", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY)
+        title_lbl = ctk.CTkLabel(upgrade_card, text="Upgrade to FLOWSPACE Pro", font=Fonts.SMALL_BOLD, text_color=Colors.TEXT_PRIMARY)
         title_lbl.pack(anchor="w", padx=15)
 
         desc_lbl = ctk.CTkLabel(

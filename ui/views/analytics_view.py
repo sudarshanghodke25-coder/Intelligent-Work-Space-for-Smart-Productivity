@@ -4,6 +4,7 @@ from theme import Colors, Fonts, Dims
 from ui.glass_card import GlassCard
 from database.database import get_connection
 from services.event_bus import bus
+from authentication.session import current_session
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -68,11 +69,12 @@ class AnalyticsView(ctk.CTkFrame):
         conn = get_connection()
         
         # Total Tasks
-        pending = conn.execute("SELECT COUNT(*) FROM tasks WHERE status != 'Completed'").fetchone()[0]
-        completed = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'Completed'").fetchone()[0]
+        user_id = current_session.user_id or 1
+        pending = conn.execute("SELECT COUNT(*) FROM tasks WHERE status != 'Completed' AND user_id=?", (user_id,)).fetchone()[0]
+        completed = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'Completed' AND user_id=?", (user_id,)).fetchone()[0]
         
         # Overall Progress
-        avg_prog = conn.execute("SELECT AVG(progress) FROM tasks").fetchone()[0]
+        avg_prog = conn.execute("SELECT AVG(progress) FROM tasks WHERE user_id=?", (user_id,)).fetchone()[0]
         prog_val = int(avg_prog) if avg_prog else 0
         
         # Upcoming Events (Next 7 Days)
@@ -102,7 +104,8 @@ class AnalyticsView(ctk.CTkFrame):
             plt.close(self.donut_fig)
             
         conn = get_connection()
-        rows = conn.execute("SELECT status, COUNT(*) FROM tasks GROUP BY status").fetchall()
+        user_id = current_session.user_id or 1
+        rows = conn.execute("SELECT status, COUNT(*) FROM tasks WHERE user_id=? GROUP BY status", (user_id,)).fetchall()
         conn.close()
         
         labels = []
@@ -160,7 +163,8 @@ class AnalyticsView(ctk.CTkFrame):
         labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
         
         conn = get_connection()
-        tasks = conn.execute("SELECT date(due_date), COUNT(*) FROM tasks WHERE due_date IS NOT NULL GROUP BY date(due_date)").fetchall()
+        user_id = current_session.user_id or 1
+        tasks = conn.execute("SELECT date(due_date), COUNT(*) FROM tasks WHERE due_date IS NOT NULL AND user_id=? GROUP BY date(due_date)", (user_id,)).fetchall()
         events = conn.execute("SELECT event_date, COUNT(*) FROM events GROUP BY event_date").fetchall()
         conn.close()
         

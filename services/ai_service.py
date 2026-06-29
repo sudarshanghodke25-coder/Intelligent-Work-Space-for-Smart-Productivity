@@ -54,7 +54,7 @@ class AIService:
             cursor.execute("SELECT role, message FROM chat_messages WHERE session_id=? ORDER BY timestamp DESC LIMIT 12", (session_id,))
             history_rows = list(reversed(cursor.fetchall()))
             
-            messages = [{"role": "system", "content": "You are Aurex AI, a futuristic AI workspace assistant. You must provide high-level, extremely concise, and fast responses. When asked to generate content, prioritize high-level summaries and avoid long-winded explanations to ensure the fastest possible output."}]
+            messages = [{"role": "system", "content": "You are FLOWSPACE AI, a futuristic AI workspace assistant. You must provide high-level, extremely concise, and fast responses. When asked to generate content, prioritize high-level summaries and avoid long-winded explanations to ensure the fastest possible output."}]
             for row in history_rows:
                 messages.append({"role": row["role"], "content": row["message"]})
 
@@ -197,7 +197,7 @@ Return ONLY a strict JSON object with EXACTLY these keys:
 - "duration": (string) E.g., "30 Days", "3 Months".
 - "success_probability": (string) E.g., "High", "Medium", based on typical completion rates.
 - "prerequisites": (array of strings) Skills or tools needed before starting.
-- "tips": (array of strings) AI-generated strategic guidance and execution advice. This will be shown as the Aurex Recommendation.
+- "tips": (array of strings) AI-generated strategic guidance and execution advice. This will be shown as the FLOWSPACE Recommendation.
 - "common_mistakes": (array of strings) Mistakes users commonly make.
 - "recommended_tools": (array of objects) Objects with "title" (string) and "url" (string, a guess at the official url).
 - "success_metrics": (array of strings) Measurable completion criteria.

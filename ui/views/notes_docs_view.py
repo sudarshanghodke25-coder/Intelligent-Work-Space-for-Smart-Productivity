@@ -362,7 +362,7 @@ class NotesDocsView(ctk.CTkFrame):
                 self.progress_lbl = ctk.CTkLabel(frame, text=getattr(self, 'current_progress', "Initializing..."), font=Fonts.BODY_BOLD, text_color=Colors.ACCENT_PRIMARY)
                 self.progress_lbl.pack(pady=10)
                 
-                ctk.CTkLabel(frame, text="AUREX Intelligence Pipeline is actively analyzing the source.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED).pack()
+                ctk.CTkLabel(frame, text="FLOWSPACE Intelligence Pipeline is actively analyzing the source.", font=Fonts.BODY, text_color=Colors.TEXT_MUTED).pack()
                 
             elif self.current_state == "FAILED":
                 print(f"[UI RENDER] Displaying FAILED state for source_id: {self.current_source_id}")

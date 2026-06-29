@@ -2,7 +2,7 @@
 file_converter/workers/job_worker.py
 Background worker that processes ConversionJobs from a thread-safe queue.
 Supports pause, resume, cancel, retry, and priority ordering.
-Uses the existing AUREX EventBus for UI notifications.
+Uses the existing FLOWSPACE EventBus for UI notifications.
 """
 
 

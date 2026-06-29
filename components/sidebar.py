@@ -136,7 +136,7 @@ class Sidebar(ctk.CTkFrame):
         ).pack(side="left", padx=(0, 8))
 
         ctk.CTkLabel(
-            brand_frame, text="AUREX",
+            brand_frame, text="FLOWSPACE",
             font=Fonts.BRAND, text_color=Colors.TEXT_PRIMARY,
             fg_color="transparent"
         ).pack(side="left")

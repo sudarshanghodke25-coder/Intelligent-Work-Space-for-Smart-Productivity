@@ -116,6 +116,7 @@ class ImageService:
                 # flux.1-schnell — extremely fast and highly accurate generation
                 import requests
                 invoke_url = "https://ai.api.nvidia.com/v1/genai/black-forest-labs/flux.1-schnell"
+
                 headers = {"Authorization": f"Bearer {aurex_api.api_key}", "Accept": "application/json"}
 
                 size_map = {"1:1": "1024x1024", "16:9": "1344x768", "9:16": "768x1344", "4:3": "1152x864", "3:4": "864x1152"}
@@ -155,7 +156,28 @@ class ImageService:
                 b64_data = None
 
                 for attempt in range(max_retries):
-                    res = requests.post(invoke_url, headers=headers, json={"prompt": current_prompt})
+                    try:
+                        res = requests.post(invoke_url, headers=headers, json={"text_prompts": [{"text": current_prompt}], "prompt": current_prompt}, timeout=20)
+                    except requests.exceptions.RequestException as e:
+                        if attempt < max_retries - 1:
+                            bus.publish("IMAGE_GEN_PROGRESS", {"status": f"Connection error... retrying ({attempt+1}/{max_retries})", "progress": 50})
+                            time.sleep(2)
+                            continue
+                        
+                        # Fallback if NVIDIA is completely down
+                        try:
+                            bus.publish("IMAGE_GEN_PROGRESS", {"status": "NVIDIA API down, using backup generator...", "progress": 85})
+                            import urllib.parse
+                            fallback_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(current_prompt)}?width=1024&height=1024&nologo=true"
+                            fallback_res = requests.get(fallback_url, timeout=30)
+                            if fallback_res.status_code == 200:
+                                import base64
+                                b64_data = base64.b64encode(fallback_res.content).decode('utf-8')
+                                break
+                        except Exception:
+                            pass
+                        raise Exception(f"Network error connecting to NVIDIA API: {str(e)}")
+
                     if res.status_code == 200:
                         jd = res.json()
                         artifacts = jd.get("artifacts", [])
@@ -190,6 +212,19 @@ class ImageService:
                             bus.publish("IMAGE_GEN_PROGRESS", {"status": f"Retrying... ({attempt+1}/{max_retries})", "progress": 50})
                             time.sleep(1)
                             continue
+                    
+                    # If we reach here with an error status (like 404 or 401), try fallback
+                    try:
+                        bus.publish("IMAGE_GEN_PROGRESS", {"status": "NVIDIA API Error, using backup generator...", "progress": 85})
+                        import urllib.parse
+                        fallback_url = f"https://image.pollinations.ai/prompt/{urllib.parse.quote(current_prompt)}?width=1024&height=1024&nologo=true"
+                        fallback_res = requests.get(fallback_url, timeout=30)
+                        if fallback_res.status_code == 200:
+                            import base64
+                            b64_data = base64.b64encode(fallback_res.content).decode('utf-8')
+                            break
+                    except Exception:
+                        pass
                     raise Exception(f"NVIDIA API Error {res.status_code}")
 
 

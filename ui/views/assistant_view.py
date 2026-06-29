@@ -67,7 +67,7 @@ class AssistantView(ctk.CTkFrame):
         header = ctk.CTkFrame(left_frame, fg_color="transparent", height=60)
         header.pack(fill="x", pady=(0, 15))
         
-        ctk.CTkLabel(header, text="AUREX AI COMMAND", font=Fonts.TITLE, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
+        ctk.CTkLabel(header, text="FLOWSPACE AI COMMAND", font=Fonts.TITLE, text_color=Colors.TEXT_PRIMARY).pack(anchor="w")
         ctk.CTkLabel(header, text="The intelligence layer of your workspace.", font=Fonts.BODY, text_color=Colors.TEXT_SECONDARY).pack(anchor="w", pady=(2, 0))
 
         # Chat Area - Increased visual prominence
@@ -94,7 +94,7 @@ class AssistantView(ctk.CTkFrame):
         self.mic_btn.pack(side="left", padx=(0, 10))
         
         self.entry = ctk.CTkEntry(
-            input_frame, placeholder_text="Message Aurex...",
+            input_frame, placeholder_text="Message FLOWSPACE...",
             font=Fonts.ENTRY, text_color=Colors.TEXT_PRIMARY,
             fg_color=Colors.INPUT_BG, border_width=1, border_color=Colors.INPUT_BORDER,
             height=Dims.ENTRY_HEIGHT + 10, corner_radius=15
@@ -284,7 +284,7 @@ class AssistantView(ctk.CTkFrame):
                 if row["role"] in ["user", "assistant"]:
                     self._add_bubble(row["message"], row["role"], row["timestamp"])
         else:
-            self._add_bubble("Greetings. I am Aurex AI. How may I assist you today?", "assistant", datetime.datetime.now())
+            self._add_bubble("Greetings. I am FLOWSPACE AI. How may I assist you today?", "assistant", datetime.datetime.now())
 
     def _copy_to_clipboard(self, text, btn=None):
         self.clipboard_clear()
@@ -364,7 +364,7 @@ class AssistantView(ctk.CTkFrame):
             text_color = Colors.TEXT_PRIMARY
             side = "left"
             justify = "left"
-            sender_text = "AUREX AI"
+            sender_text = "FLOWSPACE AI"
             
         bubble = ctk.CTkFrame(row, fg_color=bg_color, corner_radius=18, border_width=1, border_color=border_color)
         bubble.pack(side=side, fill="x", expand=False)
@@ -450,11 +450,11 @@ class AssistantView(ctk.CTkFrame):
                 self.after(0, self._handle_voice_error, f"Error: {str(e)}")
 
     def _handle_voice_success(self, text):
-        self.entry.configure(placeholder_text="Message Aurex...")
+        self.entry.configure(placeholder_text="Message FLOWSPACE...")
         self.mic_btn.configure(state="normal", text="🎤", fg_color=Colors.CARD_FLOATING)
         self._send_message(text_override=text)
         
     def _handle_voice_error(self, error_msg):
-        self.entry.configure(placeholder_text="Message Aurex...")
+        self.entry.configure(placeholder_text="Message FLOWSPACE...")
         self.mic_btn.configure(state="normal", text="🎤", fg_color=Colors.CARD_FLOATING)
         self._add_bubble(f"Voice Error: {error_msg}", "assistant", datetime.datetime.now())

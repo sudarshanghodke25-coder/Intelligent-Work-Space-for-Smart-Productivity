@@ -97,7 +97,7 @@ def get_recent_activity(user_id: int, limit: int = 10):
         last_msg = cursor.fetchone()
         msg_text = last_msg["message"] if last_msg else "New Session"
         activities.append({
-            "source": "Aurex AI",
+            "source": "FLOWSPACE AI",
             "icon": "🤖",
             "title": f"Session {row['session_id'][:8]}...",
             "summary": (msg_text[:30] + '...') if len(msg_text) > 30 else msg_text,

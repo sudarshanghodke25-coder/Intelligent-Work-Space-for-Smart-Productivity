@@ -1,5 +1,5 @@
 """
-Aurex Background Generator — Dynamic deep-space nebula with starfield.
+FLOWSPACE Background Generator — Dynamic deep-space nebula with starfield.
 Uses Pillow to generate a cosmic background image at runtime.
 """
 
@@ -12,7 +12,7 @@ import customtkinter as ctk
 # Mapping page views to their respective custom space backgrounds
 PAGE_BACKGROUNDS = {
     "Dashboard": "bg_dashboard.png",
-    "Aurex AI": "bg_aurex_ai.png",
+    "FLOWSPACE AI": "bg_aurex_ai.png",
     "AI Planner": "bg_ai_planner.png",
     "Task Manager": "bg_task_manager.png",
     "Summarizer": "bg_notes_docs.png",

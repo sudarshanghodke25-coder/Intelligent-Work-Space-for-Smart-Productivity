@@ -9,7 +9,7 @@ class TaskParser:
         """
         Two-stage parsing system:
         Stage 1: Fast local regex parser
-        Stage 2: Aurex AI fallback if confidence is low
+        Stage 2: FLOWSPACE AI fallback if confidence is low
         """
         parsed_data, confidence = TaskParser._local_parse(text)
         

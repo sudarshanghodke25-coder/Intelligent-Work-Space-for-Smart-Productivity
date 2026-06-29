@@ -55,7 +55,7 @@ class AuthView(ctk.CTkFrame):
             self._on_auth_success()
 
     def _build_header(self):
-        """Build the AUREX brand header."""
+        """Build the FLOWSPACE brand header."""
         header_frame = ctk.CTkFrame(self.left_pane, fg_color="transparent")
         header_frame.pack(pady=(0, 20))
         
@@ -66,7 +66,7 @@ class AuthView(ctk.CTkFrame):
         ).pack(pady=(0, 4))
 
         ctk.CTkLabel(
-            header_frame, text="AUREX",
+            header_frame, text="FLOWSPACE",
             font=("Segoe UI", 28, "bold"), text_color=Colors.TEXT_PRIMARY,
             fg_color="transparent"
         ).pack(pady=(0, 4))
@@ -95,7 +95,7 @@ class AuthView(ctk.CTkFrame):
             self.subtitle.configure(text="Create a new workspace account")
             self._create_input_field("Full Name", "E.g., John Doe", "name_entry")
             self._create_input_field("Username", "E.g., johndoe", "username_entry")
-            self._create_input_field("Email", "E.g., johndoe@aurex.com", "email_entry")
+            self._create_input_field("Email", "E.g., johndoe@flowspace.com", "email_entry")
             self._create_input_field("Date of Birth (YYYY-MM-DD)", "E.g., 2000-01-01", "dob_entry")
             
             # Age Label
@@ -115,7 +115,7 @@ class AuthView(ctk.CTkFrame):
             toggle_text = "Already have an account? Log in"
         else:
             self.subtitle.configure(text="Sign in to your workspace")
-            self._create_input_field("Email", "E.g., johndoe@aurex.com", "email_entry")
+            self._create_input_field("Email", "E.g., johndoe@flowspace.com", "email_entry")
             self._create_input_field("Password", "••••••••", "password_entry", show="•")
             
             # Prefill if remembered

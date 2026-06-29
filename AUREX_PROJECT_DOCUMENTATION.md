@@ -1,4 +1,4 @@
-# AUREX — Complete Project Documentation
+# FLOWSPACE — Complete Project Documentation
 
 > A premium AI-powered desktop productivity workspace built with Python, CustomTkinter, and a modular service architecture. Designed to function as an all-in-one AI assistant, content intelligence tool, creative studio, and personal productivity system.
 
@@ -10,7 +10,7 @@
 3. [Core Infrastructure](#3-core-infrastructure)
 4. [Features — Detailed Breakdown](#4-features--detailed-breakdown)
    - [Dashboard](#41-dashboard)
-   - [Aurex AI (Assistant)](#42-aurex-ai-assistant)
+   - [FLOWSPACE AI (Assistant)](#42-flowspace-ai-assistant)
    - [AI Planner](#43-ai-planner)
    - [Summarizer (Knowledge Base)](#44-summarizer-knowledge-base)
    - [Image Studio](#45-image-studio)
@@ -26,9 +26,9 @@
 
 ## 1. Project Overview
 
-**Aurex** is a standalone desktop application that puts multiple AI-powered tools into a single unified dark-themed workspace. It connects to any OpenAI-compatible AI provider (NVIDIA NIM, Groq, OpenAI, GitHub Models, HuggingFace) using a single API key stored in a `.env` file.
+**FLOWSPACE** is a standalone desktop application that puts multiple AI-powered tools into a single unified dark-themed workspace. It connects to any OpenAI-compatible AI provider (NVIDIA NIM, Groq, OpenAI, GitHub Models, HuggingFace) using a single API key stored in a `.env` file.
 
-**Why Aurex?**
+**Why FLOWSPACE?**
 - No browser needed — runs as a native desktop app
 - One key for all features — no per-feature API setup
 - Privacy-first — all data is stored locally in SQLite
@@ -106,7 +106,7 @@ main.py
 
 **File:** `ui/dashboard.py`
 
-**What it does:** The home screen shown when Aurex starts. Provides a quick overview of:
+**What it does:** The home screen shown when FLOWSPACE starts. Provides a quick overview of:
 - Recent AI chat sessions
 - Recent generated images
 - Quick-access buttons to each feature
@@ -115,7 +115,7 @@ main.py
 
 ---
 
-### 4.2 Aurex AI (Assistant)
+### 4.2 FLOWSPACE AI (Assistant)
 
 **Files:** `ui/views/assistant_view.py`, `services/ai_service.py`
 
@@ -247,7 +247,7 @@ User Prompt
 
 **Files:** `ui/views/` (history sections per feature), `services/history_service.py`
 
-**What it does:** Every feature in Aurex automatically stores its output (chat messages, generated images, summaries, tasks) to SQLite. The History view provides a unified timeline of past activity.
+**What it does:** Every feature in FLOWSPACE automatically stores its output (chat messages, generated images, summaries, tasks) to SQLite. The History view provides a unified timeline of past activity.
 
 - Filter by feature type
 - Re-open any past result
@@ -259,7 +259,7 @@ User Prompt
 
 **File:** `ui/views/accounts_view.py`, `services/auth_service.py`
 
-**What it does:** Local user account management. Users can register and log in. All data in the app is scoped to the logged-in user ID, so multiple users can share one Aurex installation with their own private data.
+**What it does:** Local user account management. Users can register and log in. All data in the app is scoped to the logged-in user ID, so multiple users can share one FLOWSPACE installation with their own private data.
 
 **Implementation:** Passwords are hashed before storage. Session token stored in `.aurex_session.json` for auto-login on next startup.
 
@@ -295,7 +295,7 @@ All LLM features use a single `aurex_api` client from `api_service.py`. This is 
 
 ## 6. Database Schema
 
-All tables stored in a single local SQLite file (`Aurex_Data/aurex.db`).
+All tables stored in a single local SQLite file (`Aurex_Data/flowspace.db`).
 
 | Table | Stores |
 |---|---|
@@ -323,4 +323,4 @@ All tables stored in a single local SQLite file (`Aurex_Data/aurex.db`).
 
 ---
 
-*Documentation generated: June 2026 | Project: AUREX Cosmic Glass Workspace*
+*Documentation generated: June 2026 | Project: FLOWSPACE Cosmic Glass Workspace*

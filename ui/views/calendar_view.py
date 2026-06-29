@@ -7,6 +7,7 @@ from ui.glass_card import GlassCard
 from database.database import get_connection
 from services.event_bus import bus
 from services.ai_scheduling_service import ai_scheduling_service
+from authentication.session import current_session
 
 # Color mapping for entity types
 ENTITY_COLORS = {
@@ -381,13 +382,14 @@ class CalendarView(ctk.CTkFrame):
         cursor = conn.cursor()
         
         # Calculate some dummy metrics based on tasks
-        total_tasks = cursor.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
-        completed = cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = 'Completed'").fetchone()[0]
+        user_id = current_session.user_id or 1
+        total_tasks = cursor.execute("SELECT COUNT(*) FROM tasks WHERE user_id=?", (user_id,)).fetchone()[0]
+        completed = cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = 'Completed' AND user_id=?", (user_id,)).fetchone()[0]
         score = int((completed / max(total_tasks, 1)) * 100) if total_tasks > 0 else 85
         
         # Fetch deadlines
         today = datetime.now().strftime("%Y-%m-%d")
-        upcoming = cursor.execute("SELECT title, due_date FROM tasks WHERE due_date >= ? AND status != 'Completed' ORDER BY due_date ASC LIMIT 2", (today,)).fetchall()
+        upcoming = cursor.execute("SELECT title, due_date FROM tasks WHERE due_date >= ? AND status != 'Completed' AND user_id=? ORDER BY due_date ASC LIMIT 2", (today, user_id)).fetchall()
         conn.close()
         
         ctk.CTkLabel(self.insights_frame, text=f"Productivity Score: {score}%", font=Fonts.BODY_BOLD, text_color=Colors.SUCCESS).pack(anchor="w", padx=10, pady=(10, 5))

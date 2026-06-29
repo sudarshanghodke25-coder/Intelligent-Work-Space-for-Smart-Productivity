@@ -38,7 +38,7 @@ class LoginView(ctk.CTkFrame):
         ).pack(pady=(0, 5))
 
         ctk.CTkLabel(
-            self.inner, text="AUREX",
+            self.inner, text="FLOWSPACE",
             font=("Segoe UI", 28, "bold"), text_color=Colors.TEXT_PRIMARY,
             fg_color="transparent"
         ).pack(pady=(0, 5))

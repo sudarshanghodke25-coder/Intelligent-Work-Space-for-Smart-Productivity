@@ -17,7 +17,7 @@ class AssistantView(ctk.CTkFrame):
         chat_area = ctk.CTkScrollableFrame(card.content, fg_color="transparent")
         chat_area.pack(fill="both", expand=True, pady=(0, 10))
         
-        ctk.CTkLabel(chat_area, text="Aurex: How can I help you today?", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY, anchor="w", fg_color=Colors.CARD_FLOATING, corner_radius=8, padx=10, pady=10).pack(fill="x", pady=5)
+        ctk.CTkLabel(chat_area, text="FLOWSPACE: How can I help you today?", font=Fonts.BODY, text_color=Colors.TEXT_PRIMARY, anchor="w", fg_color=Colors.CARD_FLOATING, corner_radius=8, padx=10, pady=10).pack(fill="x", pady=5)
         
         input_frame = ctk.CTkFrame(card.content, fg_color="transparent", height=50)
         input_frame.pack(fill="x")

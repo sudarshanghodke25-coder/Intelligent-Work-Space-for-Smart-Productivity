@@ -47,7 +47,7 @@ class CircularProgress(ctk.CTkCanvas):
 
 class DashboardView(ctk.CTkFrame):
     """
-    Aurex Premium Glassmorphism Dashboard.
+    FLOWSPACE Premium Glassmorphism Dashboard.
     Matches the space theme interface with glowing elements.
     """
     def __init__(self, parent, **kwargs):
@@ -99,7 +99,7 @@ class DashboardView(ctk.CTkFrame):
         # 2. Stats Summary Row (6 glowing cards)
         self._build_stats_row()
         
-        # 3. Aurex Tools Grid
+        # 3. FLOWSPACE Tools Grid
         self._build_tools_grid()
         
         # 4. Three columns at the bottom
@@ -133,7 +133,7 @@ class DashboardView(ctk.CTkFrame):
         header_frame = ctk.CTkFrame(self.left_scroll, fg_color="transparent")
         header_frame.pack(fill="x", pady=(10, 20), padx=8)
         
-        username = current_session.full_name or "Aurex User"
+        username = current_session.full_name or "FLOWSPACE User"
             
         greeting = "Good Evening"
         hour = datetime.datetime.now().hour
@@ -194,7 +194,7 @@ class DashboardView(ctk.CTkFrame):
             val = c.fetchone()[0]
             stats["conversations"] = val
             
-            c.execute("SELECT COUNT(*) FROM plans")
+            c.execute("SELECT COUNT(*) FROM plans WHERE user_id = ?", (current_session.user_id,))
             val = c.fetchone()[0]
             stats["plans"] = val
             
@@ -202,14 +202,19 @@ class DashboardView(ctk.CTkFrame):
             val = c.fetchone()[0]
             stats["summaries"] = val
             
-            c.execute("SELECT COUNT(*) FROM image_history")
+            c.execute("SELECT COUNT(*) FROM image_history WHERE user_id = ?", (current_session.user_id,))
             val = c.fetchone()[0]
             stats["images"] = val
             
             # Count conversions
-            c.execute("SELECT COUNT(*) FROM converter_history WHERE status='COMPLETED'")
-            val = c.fetchone()[0]
-            stats["files"] = val
+            try:
+                c.execute("SELECT COUNT(*) FROM converter_history WHERE status='COMPLETED' AND user_id = ?", (current_session.user_id,))
+                val = c.fetchone()[0]
+                stats["files"] = val
+            except:
+                c.execute("SELECT COUNT(*) FROM converter_history WHERE status='COMPLETED'")
+                val = c.fetchone()[0]
+                stats["files"] = val
             
             conn.close()
         except:
@@ -271,14 +276,14 @@ class DashboardView(ctk.CTkFrame):
 
     def _build_tools_grid(self):
         # Section title
-        title_lbl = ctk.CTkLabel(self.left_scroll, text="AUREX TOOLS", font=("Sora", 12, "bold"), text_color=Colors.TEXT_SECONDARY)
+        title_lbl = ctk.CTkLabel(self.left_scroll, text="FLOWSPACE TOOLS", font=("Sora", 12, "bold"), text_color=Colors.TEXT_SECONDARY)
         title_lbl.pack(anchor="w", padx=8, pady=(10, 10))
         
         grid_frame = ctk.CTkFrame(self.left_scroll, fg_color="transparent")
         grid_frame.pack(fill="x", padx=4)
         
         tools = [
-            ("Aurex AI", "Chat with AI and get intelligent assistance for any task.", "🤖", "Aurex AI", Colors.ACCENT_PRIMARY),
+            ("FLOWSPACE AI", "Chat with AI and get intelligent assistance for any task.", "🤖", "FLOWSPACE AI", Colors.ACCENT_PRIMARY),
             ("AI Planner", "Plan smart. Create roadmaps, set goals and achieve more.", "📋", "AI Planner", Colors.ACCENT_ACTIVE),
             ("Summarizer", "Extract key insights and summarize your documents fast.", "📝", "Summarizer", Colors.WARNING),
             ("Image Studio", "Generate, edit, and enhance images using AI models.", "🎨", "Image Studio", Colors.ACCENT_HOVER),
@@ -399,14 +404,15 @@ class DashboardView(ctk.CTkFrame):
                 SELECT a.description, a.timestamp, u.full_name 
                 FROM activities a 
                 LEFT JOIN users u ON a.user_id = u.id 
+                WHERE a.user_id = ?
                 ORDER BY a.id DESC LIMIT 10
-            ''').fetchall()
+            ''', (current_session.user_id,)).fetchall()
             
             if rows and len(rows) > 0:
                 for r in rows:
                     desc = r["description"]
                     t_str = r["timestamp"]
-                    user_name = r["full_name"] or "Aurex User"
+                    user_name = r["full_name"] or "FLOWSPACE User"
                     
                     # Formatting time and date accurately
                     formatted_time = t_str # fallback
@@ -516,7 +522,7 @@ class DashboardView(ctk.CTkFrame):
         # Load from plans table if available
         try:
             conn = get_connection()
-            rows = conn.execute("SELECT title, created_at FROM plans LIMIT 4").fetchall()
+            rows = conn.execute("SELECT title, created_at FROM plans WHERE user_id = ? LIMIT 4", (current_session.user_id,)).fetchall()
             if rows and len(rows) > 0:
                 plans = []
                 for idx, r in enumerate(rows):
