@@ -1,4 +1,5 @@
 .env
+.aurex_session.json
 __pycache__/
 *.py[cod]
 *$py.class
@@ -6,3 +7,9 @@ __pycache__/
 working/
 data/
 Aurex_Data/
+build/
+dist/
+.ruff_cache/
+*.spec.bak
+*.log
+

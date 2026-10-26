@@ -11,7 +11,10 @@ class AurexAPIClient:
         self._init_client()
 
     def _init_client(self):
-        # Look for tokens in various possible env variables
+        import sys
+        from pathlib import Path
+        from dotenv import load_dotenv
+
         keys_to_check = ["AUREX_API_KEY", "NVIDIA_API_KEY", "GROQ_API_KEY", "OPENAI_API_KEY", "GITHUB_TOKEN", "HF_TOKEN"]
         token = None
         for key in keys_to_check:
@@ -19,6 +22,22 @@ class AurexAPIClient:
             if token:
                 break
         
+        if not token:
+            # Attempt to reload .env from possible installation roots
+            candidates = [
+                Path(sys.executable).parent / ".env",
+                Path(__file__).resolve().parent.parent / ".env",
+                Path.cwd() / ".env"
+            ]
+            for c in candidates:
+                if c.exists():
+                    load_dotenv(dotenv_path=c, override=True)
+                    break
+            for key in keys_to_check:
+                token = os.environ.get(key)
+                if token:
+                    break
+
         if not token:
             return
 
@@ -50,7 +69,8 @@ class AurexAPIClient:
             
         elif token.startswith("nvapi-"):
             self.provider = "Nvidia API"
-            self.model = "meta/llama-3.1-8b-instruct"
+            self.model = "nvidia/nemotron-3.5-bolt-e4b"
+            self.fallback_model = "nvidia/nemotron-3.5-lightning-30b-a3b"
             self.base_url = "https://integrate.api.nvidia.com/v1"
             self.client = openai.OpenAI(api_key=self.api_key, base_url=self.base_url)
             
@@ -78,7 +98,7 @@ class AurexAPIClient:
         }
 
     def print_diagnostics(self):
-        print("\n--- FLOWSPACE SYSTEM DIAGNOSTICS ---")
+        print("\n--- AUREX SYSTEM DIAGNOSTICS ---")
         diag = self.get_diagnostics()
         if diag["status"] == "FAIL":
             print(f"X SYSTEM ERROR: {diag['message']}")
@@ -94,33 +114,57 @@ class AurexAPIClient:
             print(f"KEY ENDS WITH: '{raw_key[-5:] if len(raw_key) > 5 else ''}'")
         print("----------------------------------------\n")
 
+    def _normalize_response(self, response):
+        """Extract content or reasoning_content so choices[0].message.content is never empty."""
+        if not response or not hasattr(response, "choices"):
+            return response
+        for choice in response.choices:
+            if hasattr(choice, "message"):
+                msg = choice.message
+                if getattr(msg, "content", None) is None:
+                    reasoning = getattr(msg, "reasoning_content", None)
+                    if reasoning:
+                        msg.content = reasoning
+        return response
+
     def chat_completions_create(self, messages, model=None, response_format=None, temperature=0.7, max_tokens=1024):
         if not self.client:
             raise ValueError("AI Client not initialized properly. Check diagnostics.")
             
+        target_model = model or self.model
         kwargs = {
-            "model": model or self.model,
+            "model": target_model,
             "messages": messages,
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
         
         if response_format:
-            # Hugging Face TGI sometimes struggles with json_object format flag explicitly
-            # GitHub Models / Azure supports it. 
-            if self.provider == "Hugging Face":
-                # HF might not support response_format dictionary exactly like OpenAI
-                pass 
-            else:
+            if self.provider != "Hugging Face":
                 kwargs["response_format"] = response_format
                 
-        return self.client.chat.completions.create(**kwargs)
+        try:
+            resp = self.client.chat.completions.create(**kwargs)
+            return self._normalize_response(resp)
+        except Exception as e:
+            # If primary model fails and a fallback is configured, try fallback
+            fallback = getattr(self, "fallback_model", None)
+            if fallback and target_model != fallback and self.provider == "Nvidia API":
+                try:
+                    kwargs["model"] = fallback
+                    # Ensure reasoning models have enough tokens to output response
+                    if kwargs.get("max_tokens", 0) < 384:
+                        kwargs["max_tokens"] = 512
+                    resp = self.client.chat.completions.create(**kwargs)
+                    return self._normalize_response(resp)
+                except Exception:
+                    pass
+            raise e
 
     def audio_transcriptions_create(self, file, model="whisper-1"):
         if not self.client:
             raise ValueError("AI Client not initialized properly. Check diagnostics.")
         
-        # Adjust model name for Groq Whisper
         if self.provider == "Groq":
             model = "whisper-large-v3"
             
@@ -129,13 +173,18 @@ class AurexAPIClient:
             model=model
         )
 
-    def vision_analysis(self, prompt: str, base64_images: list[str], model="meta/llama-3.2-90b-vision-instruct") -> str:
+    def vision_analysis(self, prompt: str, base64_images: list[str], model=None) -> str:
         if not self.client:
             raise ValueError("AI Client not initialized properly.")
             
+        if not model:
+            if self.provider == "Nvidia API":
+                model = "nvidia/nemotron-3.5-super-vl-120b-a12b"
+            else:
+                model = "meta/llama-3.2-11b-vision-instruct"
+
         content = [{"type": "text", "text": prompt}]
         for b64 in base64_images:
-            # Detect MIME type if possible or default to png
             content.append({
                 "type": "image_url",
                 "image_url": {
@@ -156,7 +205,9 @@ class AurexAPIClient:
             max_tokens=512,
             temperature=0.7
         )
-        return response.choices[0].message.content
+        self._normalize_response(response)
+        msg = response.choices[0].message
+        return msg.content or getattr(msg, "reasoning_content", "") or ""
 
 # Global singleton
 aurex_api = AurexAPIClient()

@@ -49,14 +49,12 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
     """
     rng = random.Random(seed)
     img = Image.new("RGB", (width, height), (8, 8, 24))
-    draw = ImageDraw.Draw(img)
 
     # ── Layer 1: Base gradient ──────────────────────────────────────────
     top_color = (16, 25, 45)
     mid_color = (12, 21, 38)
     bot_color = (8, 17, 32)
 
-    # Render gradient at reduced height, then scale — much faster than per-pixel at full res
     grad_h = min(height, 256)
     grad = Image.new("RGB", (1, grad_h))
     grad_draw = ImageDraw.Draw(grad)
@@ -68,9 +66,14 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
             c = _lerp_color(mid_color, bot_color, (t - 0.5) * 2)
         grad_draw.point((0, y), fill=c)
     img = grad.resize((width, height), Image.Resampling.BILINEAR)
-    draw = ImageDraw.Draw(img)
 
-    # ── Layer 2: Nebula glow blobs ──────────────────────────────────────
+    # ── Layer 2 & 3 Optimization: Downscaled Blur ─────────────────────
+    scale = 256 / max(width, height) if max(width, height) > 256 else 1.0
+    sw, sh = max(1, int(width * scale)), max(1, int(height * scale))
+
+    nebula_layer = Image.new("RGB", (sw, sh), (0, 0, 0))
+    nebula_draw = ImageDraw.Draw(nebula_layer)
+
     nebula_colors = [
         (139, 92, 246),    # electric purple
         (6, 182, 212),     # cyan
@@ -79,88 +82,57 @@ def generate_nebula_background(width: int, height: int, seed: int = 42) -> Image
         (3, 181, 211),     # teal cyan
     ]
 
-    # ── Layer 2 & 3 Optimization: Downscaled Blur ─────────────────────
-    # Gaussian blur is O(N) where N is pixels*radius. We downscale by 4-8x to make rendering instant.
-    scale = 256 / max(width, height) if max(width, height) > 256 else 1.0
-    sw, sh = max(1, int(width * scale)), max(1, int(height * scale))
-
-    nebula_layer = Image.new("RGB", (sw, sh), (0, 0, 0))
-    nebula_draw = ImageDraw.Draw(nebula_layer)
-
-    num_blobs = rng.randint(6, 10)
-    for _ in range(num_blobs):
+    for _ in range(rng.randint(6, 9)):
         cx = rng.randint(int(-sw * 0.2), int(sw * 1.2))
         cy = rng.randint(int(-sh * 0.2), int(sh * 1.2))
         rx = rng.randint(int(sw * 0.15), int(sw * 0.5))
         ry = rng.randint(int(sh * 0.15), int(sh * 0.5))
-        color = rng.choice(nebula_colors)
-        color = tuple(c // 3 for c in color)
+        color = tuple(c // 3 for c in rng.choice(nebula_colors))
         nebula_draw.ellipse([cx - rx, cy - ry, cx + rx, cy + ry], fill=color)
 
     nebula_layer = nebula_layer.filter(ImageFilter.GaussianBlur(radius=max(sw, sh) // 6))
 
-    # ── Layer 3: Subtle secondary glow spots ────────────────────────────
-    glow_layer = Image.new("RGB", (sw, sh), (0, 0, 0))
-    glow_draw = ImageDraw.Draw(glow_layer)
-
-    for _ in range(4):
-        cx = rng.randint(0, sw)
-        cy = rng.randint(0, sh)
-        r = rng.randint(int(min(sw, sh) * 0.05), int(min(sw, sh) * 0.15))
-        color = rng.choice([(139, 92, 246), (6, 182, 212), (244, 63, 94)])
-        color = tuple(c // 2 for c in color)
-        glow_draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=color)
-
-    glow_layer = glow_layer.filter(ImageFilter.GaussianBlur(radius=max(sw, sh) // 10))
-
     from PIL import ImageChops
-    # Add layers together while still small
-    combined_glow = ImageChops.add(nebula_layer, glow_layer)
-    
     if scale != 1.0:
-        combined_glow = combined_glow.resize((width, height), Image.Resampling.BILINEAR)
+        nebula_layer = nebula_layer.resize((width, height), Image.Resampling.BILINEAR)
 
-    # Blend onto base using screen-like additive blending
-    img = ImageChops.add(img, combined_glow)
+    img = ImageChops.add(img, nebula_layer)
 
     # ── Layer 4: Starfield ──────────────────────────────────────────────
     draw = ImageDraw.Draw(img)
-    num_stars = max(150, (width * height) // 5000)
+    num_stars = max(120, (width * height) // 6000)
 
     for _ in range(num_stars):
         sx = rng.randint(0, width - 1)
         sy = rng.randint(0, height - 1)
-        brightness = rng.randint(80, 255)
-        size = rng.choices([0, 1], weights=[85, 15])[0]
-
-        if size == 0:
-            draw.point((sx, sy), fill=(brightness, brightness, brightness))
-        else:
-            # Slightly larger star with glow
+        brightness = rng.randint(90, 255)
+        if rng.random() > 0.85:
             b2 = brightness // 3
             draw.point((sx, sy), fill=(brightness, brightness, brightness))
             for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
                 nx, ny = sx + dx, sy + dy
                 if 0 <= nx < width and 0 <= ny < height:
                     draw.point((nx, ny), fill=(b2, b2, b2))
+        else:
+            draw.point((sx, sy), fill=(brightness, brightness, brightness))
 
     return img
 
 
 class NebulaBackground:
-    """Manages a responsive deep-space background with dynamic image cross-fading."""
+    """Manages a high-performance responsive deep-space background with caching."""
 
     def __init__(self, parent: ctk.CTk):
         self.parent = parent
         self._bg_label = None
         self._current_size = (0, 0)
         self._resize_after_id = None
-        self._seed = random.randint(1, 99999)
+        self._seed = 42
         self.current_page = "Dashboard"
         self.current_pil_image = None
-        self._transition_id = 0
+        self._ctk_image = None
+        self._is_rendering = False
 
-        # Build absolute path to backgrounds
         self.bg_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "backgrounds")
 
     def setup(self, container=None):
@@ -170,126 +142,82 @@ class NebulaBackground:
         self._bg_label.place(x=0, y=0, relwidth=1, relheight=1)
         self._bg_label.lower()
 
-        # Generate initial background
+        # Generate initial background once window metrics are available
         self.parent.update_idletasks()
-        w = max(self.parent.winfo_width(), 800)
-        h = max(self.parent.winfo_height(), 600)
-        self.parent.after(100, lambda: self._render(w, h))
+        w = max(self.parent.winfo_width(), 1000)
+        h = max(self.parent.winfo_height(), 650)
+        self.parent.after(50, lambda: self._render(w, h))
 
         # Bind resize with debounce
         self.parent.bind("<Configure>", self._on_resize)
 
     def set_page_background(self, page_name: str):
-        """Transition the background to the theme of the new page."""
-        if page_name == self.current_page and self.current_pil_image is not None:
-            return
+        """Switch page reference; reuse cached background without re-render lag."""
         self.current_page = page_name
-        w = max(self.parent.winfo_width(), 100)
-        h = max(self.parent.winfo_height(), 100)
-        self._render(w, h, force_transition=True)
+        if self._ctk_image is not None and self._bg_label:
+            return  # Already rendered and active, avoid freezing the UI thread
+
+        w = max(self.parent.winfo_width(), 1000)
+        h = max(self.parent.winfo_height(), 650)
+        self._render(w, h)
 
     def _on_resize(self, event):
-        """Debounced resize handler — regenerates background."""
+        """Debounced resize handler — only triggers on window resizing."""
         if event.widget != self.parent:
             return
         if self._resize_after_id:
-            self.parent.after_cancel(self._resize_after_id)
-        self._resize_after_id = self.parent.after(300, self._do_resize)
+            try:
+                self.parent.after_cancel(self._resize_after_id)
+            except Exception:
+                pass
+        self._resize_after_id = self.parent.after(250, self._do_resize)
 
     def _do_resize(self):
-        """Actually regenerate/resize the background on resize."""
+        """Regenerate background only if dimensions changed significantly."""
         w = self.parent.winfo_width()
         h = self.parent.winfo_height()
-        if (w, h) != self._current_size and w > 100 and h > 100:
-            self._render(w, h)
+        # Avoid thrashing on tiny 1-2px resizing
+        if abs(w - self._current_size[0]) > 35 or abs(h - self._current_size[1]) > 35:
+            if w > 100 and h > 100:
+                self._render(w, h)
 
-    def _load_page_image(self, page_name: str, target_w: int, target_h: int) -> Image.Image:
-        """Load the universal main background image and resize it, or fallback."""
-        filepath = os.path.join(self.bg_dir, "main_bg.jpg")
-
-        if os.path.exists(filepath):
-            try:
-                img = Image.open(filepath)
-                # Ensure it's RGB
-                if img.mode != "RGB":
-                    img = img.convert("RGB")
-                return img.resize((target_w, target_h), Image.Resampling.LANCZOS)
-            except Exception as e:
-                print(f"Error loading background image {filepath}: {e}")
-
-        # Fallback to procedural generation
-        return generate_nebula_background(target_w, target_h, seed=self._seed)
-
-    def _render(self, w: int, h: int, force_transition: bool = False):
-        """Load and apply the page background with cross-fade transition."""
+    def _render(self, w: int, h: int):
+        """Generate and apply background image asynchronously."""
+        if self._is_rendering:
+            return
+        self._is_rendering = True
         self._current_size = (w, h)
+
         render_w = min(w, 1280)
         render_h = min(h, 720)
 
-        # Increment transition ID to cancel previous animations
-        self._transition_id += 1
-        tid = self._transition_id
+        def _worker():
+            try:
+                img = generate_nebula_background(render_w, render_h, seed=self._seed)
+            except Exception as e:
+                print(f"Background generation error: {e}")
+                img = Image.new("RGB", (render_w, render_h), (8, 12, 24))
 
-        def _load_and_animate():
-            new_img = self._load_page_image(self.current_page, render_w, render_h)
-            
-            def _start_animation():
-                if tid != self._transition_id:
-                    return
-                
-                # If there's no current image or we are not forcing transition, just set it
-                if self.current_pil_image is None or not force_transition:
-                    self.current_pil_image = new_img
-                    self._apply_image(new_img, w, h)
-                    return
+            def _apply():
+                self._is_rendering = False
+                self.current_pil_image = img
+                self._apply_image(img, w, h)
 
-                # Animate cross-fade
-                steps = 12
-                duration_ms = 600
-                step_ms = duration_ms // steps
-                start_img = self.current_pil_image.copy()
-
-                def _animate_step(step=0):
-                    if tid != self._transition_id:
-                        return
-                    if step > steps:
-                        self.current_pil_image = new_img
-                        self._apply_image(new_img, w, h)
-                        return
-                    
-                    alpha = step / steps
-                    # Ease In-Out: 3t^2 - 2t^3
-                    t = alpha * alpha * (3 - 2 * alpha)
-                    
-                    try:
-                        blended = Image.blend(start_img, new_img, t)
-                        self._apply_image(blended, w, h)
-                    except Exception:
-                        # Fallback in case of blend error
-                        self.current_pil_image = new_img
-                        self._apply_image(new_img, w, h)
-                        return
-                        
-                    self.parent.after(step_ms, lambda: _animate_step(step + 1))
-
-                _animate_step(0)
-
-            # Schedule animation start on main thread
             if hasattr(self.parent, "after"):
-                self.parent.after(0, _start_animation)
+                self.parent.after(0, _apply)
 
-        threading.Thread(target=_load_and_animate, daemon=True).start()
+        threading.Thread(target=_worker, daemon=True).start()
 
     def _apply_image(self, pil_img: Image.Image, w: int, h: int):
         """Convert PIL image to CTkImage and apply to the background label."""
         if (pil_img.width, pil_img.height) != (w, h):
-            # Scale to final window dimensions
             display_img = pil_img.resize((w, h), Image.Resampling.BILINEAR)
         else:
             display_img = pil_img
 
         ctk_img = ctk.CTkImage(light_image=display_img, dark_image=display_img, size=(w, h))
-        if self._bg_label:
+        self._ctk_image = ctk_img
+        if self._bg_label and self._bg_label.winfo_exists():
             self._bg_label.configure(image=ctk_img)
             self._bg_label._ctk_image = ctk_img  # prevent GC
 

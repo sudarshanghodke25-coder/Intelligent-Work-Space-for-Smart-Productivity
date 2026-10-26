@@ -84,7 +84,7 @@ class AurexApp(ctk.CTk):
             
         ctk.set_default_color_theme("dark-blue")
 
-        self.title("FLOWSPACE Cosmic Glass Workspace")
+        self.title("Aurex Cosmic Glass Workspace")
         self.geometry("1400x850")
         self.minsize(1000, 650)
         self.configure(fg_color=Colors.BG_PRIMARY)
@@ -128,6 +128,7 @@ class AurexApp(ctk.CTk):
             self._view_registry = {
                 "Dashboard": DashboardView,
                 "Settings": SettingsView,
+                "Aurex AI": AssistantView,
                 "FLOWSPACE AI": AssistantView,
                 "History": HistoryView,
                 "AI Planner": PlannerView,

@@ -75,7 +75,7 @@ main.py
 
 | Key Prefix | Provider Detected | Model Used |
 |---|---|---|
-| `nvapi-` | NVIDIA NIM | `meta/llama-3.1-8b-instruct` |
+| `nvapi-` | NVIDIA NIM | `nvidia/nemotron-3.5-bolt-e4b` |
 | `gsk_` | Groq | `llama-3.1-8b-instant` |
 | `sk-` | OpenAI | `gpt-4o-mini` |
 | `github_pat_` | GitHub Models | `gpt-4o-mini` |
